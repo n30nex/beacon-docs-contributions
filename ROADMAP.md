@@ -34,12 +34,13 @@ Server order: **#149 → #154 → #157 → #159**.
 | [Server #157](https://github.com/MeshCore-Beacon/beacon-server/pull/157) | Bounded SNR/RSSI distributions and hourly statistics | Complete endpoint scope in #156 |
 | [Server #159](https://github.com/MeshCore-Beacon/beacon-server/pull/159) | Bounded received-path and hash-width statistics | Complete endpoint scope in #158 |
 
-Web order: **#59 → #55 → #57**. The icon correction #59 can land independently; #55/#57 wait until their server endpoints are merged and deployed. Traffic #52 landed verbatim in the #53 squash (`e01c090`); #52 was closed as included, and #53 is merged. Issues #50/#51 are closed. Observer comparison [#48](https://github.com/MeshCore-Beacon/beacon-web/pull/48) and foreign-node display [#49](https://github.com/MeshCore-Beacon/beacon-web/pull/49) are also merged.
+Web order: **#59 → #55 → #57**, with independent map correction **#61** also ready. The icon correction #59 can land independently; #55/#57 wait until their server endpoints are merged and deployed. Traffic #52 landed verbatim in the #53 squash (`e01c090`); #52 was closed as included, and #53 is merged. Issues #50/#51 are closed. Observer comparison [#48](https://github.com/MeshCore-Beacon/beacon-web/pull/48) and foreign-node display [#49](https://github.com/MeshCore-Beacon/beacon-web/pull/49) are also merged.
 
 | PR | Scope | Dependency / issue |
 |---|---|---|
 | [Web #52](https://github.com/MeshCore-Beacon/beacon-web/pull/52) | Traffic heatmap, hourly trends and reception share | Included in merged #53; #50 closed |
 | [Web #53](https://github.com/MeshCore-Beacon/beacon-web/pull/53) | Regional scope charts and exact counts | Merged as e01c090; #51 closed |
+| [Web #61](https://github.com/MeshCore-Beacon/beacon-web/pull/61) | Omit reset/invalid map locations and false neighbour/path lines | Independent correction; #60 |
 | [Web #59](https://github.com/MeshCore-Beacon/beacon-web/pull/59) | Distinct Traffic, Scopes and Compare icons | Independent correction; #58 |
 | [Web #55](https://github.com/MeshCore-Beacon/beacon-web/pull/55) | RF / Signal charts and sample availability | After #59 and server #157 is merged and deployed; #54 |
 | [Web #57](https://github.com/MeshCore-Beacon/beacon-web/pull/57) | Paths & Hashes charts and classification coverage | After #55 and server #159 is merged and deployed; #56 |
@@ -66,7 +67,9 @@ The path page counts stored receptions, not unique devices. Flood paths accumula
 
 The September 20 review correction moves both new aggregate APIs onto materialized hourly snapshots, preserving reception/region semantics and normalizing polling windows to UTC hours. In a rolled-back million-row Pi fixture, Signal request queries took 1.8–77.5 ms and Paths 3.5–141.9 ms across custom/generic plans. Initial population took 14.4/8.4 seconds, refresh 16.8/6.2 seconds, and view/index storage was 6.5/11.3 MB respectively. These measurements cover the fixture, not the full production workload. See the [release consolidation checklist](RELEASE-CHECKLIST.md) for remaining gates.
 
-The current combined preview has passed native Go/PostgreSQL/HTTP validation and **781 web tests**. Private backup checks cover version compatibility, feature-only startup failure, TLS/password files, cancellation and schema/data/sequence restoration. The review update passed 390/1280px browser checks, with ten distinct glyphs and explicit complete-hour text; earlier chart validation also covered 320/768px. Public Signal/Paths counts reconcile with SQL, both MQTT feeds advance and the browser reports LIVE. Current revisions and corresponding-source archives are on the preview's changelog page.
+The current combined preview has passed native Go/PostgreSQL/HTTP validation and **786 web tests**. Private backup checks cover version compatibility, feature-only startup failure, TLS/password files, cancellation and schema/data/sequence restoration. The review update passed 390/1280px browser checks, with ten distinct glyphs and explicit complete-hour text; earlier chart validation also covered 320/768px. Public Signal/Paths counts reconcile with SQL, both MQTT feeds advance and the browser reports LIVE. Current revisions and corresponding-source archives are on the preview's changelog page.
+
+The current Pi web build is `42ba5fc` with server `6be0f762`. The map correction preserves stored records and valid equator/prime-meridian positions; browser checks with real data confirm the false origin cluster and Atlantic links are gone with neighbour lines enabled. All service containers remained unchanged during this frontend-only update.
 
 ## Next phases
 
@@ -85,6 +88,7 @@ The current combined preview has passed native Go/PostgreSQL/HTTP validation and
 | [Server #60](https://github.com/MeshCore-Beacon/beacon-server/issues/60) | Remaining administration/worker/persistence behavior; account records do not establish login sessions |
 | [Server #72](https://github.com/MeshCore-Beacon/beacon-server/issues/72) | Archive validation/import, browser access, deployment-file coverage and remote/scheduled backup scope |
 | [Web #12](https://github.com/MeshCore-Beacon/beacon-web/issues/12) | Supported-language and formatting scope for internationalization |
+| [Web #60](https://github.com/MeshCore-Beacon/beacon-web/issues/60) | Map location-reset correction #61 is deployed and awaiting merge |
 | [Web #58](https://github.com/MeshCore-Beacon/beacon-web/issues/58) | Distinct analytics navigation icons, including pending RF/Signal and Paths pages |
 
 The analytics endpoint/page issues remain open while their corresponding PRs await merge. Use closing references only when a PR completes the issue's accepted scope; use related references for partial work.

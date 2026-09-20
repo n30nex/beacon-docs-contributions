@@ -14,11 +14,12 @@ The deployment owner performs the eventual CoreScope switch. Beacon remains at d
 - [x] Server #154: verify pg_dump/server compatibility at startup; an optional backup prerequisite failure disables only backup, with a specific operator diagnostic. Document backup.enabled and distinguish the export size limit. Native testing caught and fixed the text-versus-integer version-setting scan; CI now covers it with PostgreSQL.
 - [x] Server #157: serve Signal distributions and weighted means from compact materialized data; snap polling windows to hours, preserve missing/invalid/legacy sample semantics, and measure refresh/storage costs.
 - [x] Server #159: materialize path classification, share window parsing, guard database-derived array indexes and retain all 256 decoder-header checks.
+- [x] Web #60: shared map-location validation in independent #61 omits reset/invalid markers and links while preserving valid zero-axis locations and stored records. Native and real-data browser checks pass.
 - [x] Web #58: distinct navigation glyphs in #59, plus dedicated RF/Signal and Paths glyphs in #55/#57.
 - [x] Refresh #55/#57 after the accepted #52/#53 squash. Their source trees were identical after the September 20 refresh; that history-only update needs no replacement Pi artifact.
-- [x] All seven application PRs pass their required checks on the published heads. Native PostgreSQL tests ran. The upstream web CodeQL job remains skipped under its existing policy and is not counted as a scan.
+- [x] All eight application PRs pass their required checks on the published heads. Native PostgreSQL tests ran. The upstream web CodeQL job remains skipped under its existing policy and is not counted as a scan.
 
-These checkmarks record completed corrections and validation, not maintainer approval. The four server PRs, three web PRs and docs #5 still await their merge/review decisions.
+These checkmarks record completed corrections and validation, not maintainer approval. The four server PRs, four web PRs and docs #5 still await their merge/review decisions.
 
 Review order is server #149 -> #154 -> #157 -> #159. Web #55 waits for #157 to be merged **and deployed**; #57 waits for #159 to be merged and deployed and for #55. The icon fix can be reviewed independently. Traffic and Scopes have already landed together as web e01c090; do not replay #52.
 
@@ -32,14 +33,14 @@ A consolidation release must document its actual retention behavior and capacity
 
 ## Combined-candidate evidence
 
-- [x] Native Pi build/test of server `6be0f762` and web `19672038`, including real PostgreSQL-to-HTTP checks and migration retry/concurrent refresh; 781 web tests pass.
+- [x] Native Pi build/test of server `6be0f762` and web `42ba5fc`, including real PostgreSQL-to-HTTP checks and migration retry/concurrent refresh; 786 web tests pass.
 - [x] One-million-row request/initial-population/refresh/storage measurements; request plans read only the new views. Signal: 1.8–77.5 ms reads, 14.4 s initial population, 16.8 s refresh, 6.5 MB. Paths: 3.5–141.9 ms reads, 8.4 s population, 6.2 s refresh, 11.3 MB.
 - [ ] Measure the full operator workload and sustained refresh/ingest load before a production parity claim. The million-row fixture does not establish that limit.
 - [x] Backup client mismatch and unsupported-DSN cases leave the public API available; valid client export/restore used disposable data only and restored all 35 source migrations. Public preview admin/backup remains disabled.
 - [x] Real preview analytics reconcile with SQL for the materialized window. Browser charts, complete-hour text, small screens and error/empty/retry states are verified. Both MQTT feeds advance and the public browser reports LIVE.
 - [x] Current and rollback server/web artifacts, exact source offers and visible changelog match the running pair. Only the Beacon app restarted; the other 20 containers were preserved. Additive rollup migrations retain observations and are compatible with the previous binary.
 
-The rollback pair is server `4f6679c8` / web `b1100972`. The local deployment record preserves its binaries, assets, source archives and runner. Rolling back the application keeps the additive rollup views; it does not remove history.
+The immediate frontend rollback is web `19672038` with the unchanged server `6be0f762`. The earlier full rollback pair, server `4f6679c8` / web `b1100972`, is also retained. The local deployment record preserves its binaries, assets, source archives and runner. Rolling back the application keeps the additive rollup views; it does not remove history.
 
 ## Maintainer release handoff
 
