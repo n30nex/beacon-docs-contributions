@@ -8,6 +8,8 @@ Finish the current account/backup/analytics queue, correct review regressions, a
 
 The deployment owner performs the eventual CoreScope switch. Beacon remains at dev.meshcore.ca, CoreScope at live.meshcore.ca, and the Pi preview remains at canadaverse.org/beacon-dev/ with its changelog and corresponding source.
 
+Independent follow-up [server #160](https://github.com/MeshCore-Beacon/beacon-server/pull/160) adds offline archive verification and does not block or expand this release's required queue. Its separately installed Pi CLI is `9385bc14`; the running server/web stay unchanged. Required native and compiled PostgreSQL checks pass, with Windows race coverage because the Pi race runtime cannot initialize. Decide explicitly whether to include the CLI follow-up when freezing the release; issue #72 remains partial either way.
+
 ## Review gates
 
 - [x] Server #149: document POST/DELETE browser preflights and the full admin CORS method example. Keep public read-only defaults.
