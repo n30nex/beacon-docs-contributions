@@ -79,6 +79,8 @@ The current Pi build is server `5848d200` with unchanged web `42ba5fcb`. It comp
 
 ## Next phases
 
+The September 20 #116 investigation has a new [current-build result](https://github.com/MeshCore-Beacon/beacon-server/issues/116#issuecomment-5753626821): a 600-second unmodified Pi capture kept both feeds connected and retained 2,169 new observations, with no ping timeout, disconnect, deadline, SQLSTATE error or HTTP 5xx response. App/PostgreSQL CPU averaged 2.14%/3.96% of one core. The preceding 3h39 log likewise has no MQTT loss or deadline error. Timestamp warnings were classified separately. This did not measure callback or pool-acquisition duration and does not establish the original cause or production capacity. No application, ordering, acknowledgement or service change was made; #116 remains open. Further capture should follow a recurrence or meaningful workload change, rather than repeatedly sampling the same healthy state.
+
 1. **Finish the current queue and prepare a consolidation release.** Address all four server reviews and the analytics icon regression [web #58](https://github.com/MeshCore-Beacon/beacon-web/issues/58). Validate the combined candidate on the Pi, retain backend-before-frontend deployment order, then hand reviewed `dev` candidates to maintainers for the server/web main releases. Follow [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md). Pause new analytics until this breakpoint; this release does not claim complete CoreScope parity.
 2. **After the consolidation release: Channel Activity analytics.** Inspect existing aggregates and add bounded channel traffic/trend views. Define messages versus receptions, unknown/encrypted-channel coverage and the behavior when keys are unavailable. Keep keys and message contents out of aggregate responses; avoid raw-message paging to build statistics.
 3. **Observed ambiguity and topology.** Separate static prefix conflicts from observed unresolved/ambiguous paths. Add justified route-pattern, neighbour, hop and distance views with clear provenance and bounded work.
@@ -89,7 +91,7 @@ The current Pi build is server `5848d200` with unchanged web `42ba5fcb`. It comp
 
 | Issue | Remaining scope |
 |---|---|
-| [Server #116](https://github.com/MeshCore-Beacon/beacon-server/issues/116) | Attribute repeated MQTT ping timeouts to a measured cause; fresh traffic alone is insufficient |
+| [Server #116](https://github.com/MeshCore-Beacon/beacon-server/issues/116) | No recurrence in the September 20 retained log / ten-minute capture; still needs an attributable event with callback/pool timing |
 | [Server #99](https://github.com/MeshCore-Beacon/beacon-server/issues/99) | Advert names are accepted; ACK/TRACE/PING references in #161 await review; define any remaining packet-type formats |
 | [Server #60](https://github.com/MeshCore-Beacon/beacon-server/issues/60) | Remaining administration/worker/persistence behavior; account records do not establish login sessions |
 | [Server #72](https://github.com/MeshCore-Beacon/beacon-server/issues/72) | Archive validation #160 awaits review; import, browser access, deployment-file coverage and remote/scheduled backup remain |
