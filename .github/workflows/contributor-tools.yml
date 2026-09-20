@@ -4,7 +4,6 @@ on:
   pull_request:
     paths: ["tools/**", ".github/workflows/contributor-tools.yml"]
   push:
-    branches: [main]
     paths: ["tools/**", ".github/workflows/contributor-tools.yml"]
 
 permissions:

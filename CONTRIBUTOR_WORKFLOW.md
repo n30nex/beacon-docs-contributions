@@ -1,6 +1,6 @@
 # Contributor workflow
 
-Use this workflow to keep small Beacon changes reviewable while reducing manual branch maintenance. The executable helper is [tools/beacon_stack.py](tools/beacon_stack.py); its [offline regression tests](tools/test_beacon_stack.py) run in this repository's CI.
+Use this workflow to keep small Beacon changes reviewable while reducing manual branch maintenance. The executable helper is [tools/beacon_stack.py](tools/beacon_stack.py); a CI workflow is included for its [offline regression tests](tools/test_beacon_stack.py).
 
 ## Working loop
 
