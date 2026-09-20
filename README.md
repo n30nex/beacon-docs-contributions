@@ -6,6 +6,7 @@ This repo is the single place to:
 
 1. **Grab a deployment** — copy the Docker Compose folder for the topology you want, fill in your variables, and `docker compose up -d`.
 2. **Read the docs** — project-wide design and API documentation that describe how the whole system works.
+3. **Follow development** — the [parity and analytics roadmap](ROADMAP.md) and [executable contributor workflow](CONTRIBUTOR_WORKFLOW.md) track review dependencies, validation and the next phases.
 
 ---
 
