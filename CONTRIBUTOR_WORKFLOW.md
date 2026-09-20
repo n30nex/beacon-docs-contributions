@@ -9,7 +9,8 @@ Use this workflow to keep small Beacon changes reviewable while reducing manual 
 3. Follow each repository's contribution rules. Prefer existing components and feature-owned files; keep shared startup/router/navigation changes in a declared order.
 4. Build and test the change, open its PR against `dev`, then record its exact parent, head, fork branch and worktree in the manifest. Link the parent-to-head comparison in the PR body.
 5. Keep current Beacon contribution PRs out of draft as requested by the contributor, with dependencies visible. Request MrAlders0n's review; if account permissions prevent formal assignment, use an explicit review-request comment instead.
-6. After merges, run Sync and Check. Rebuild/redeploy the preview only if the composed source changes, preserving the actual running revision and corresponding-source offer.
+6. Keep cross-repository rollout order explicit: a new web page waits until its server endpoint is merged **and deployed**. Ready for review does not imply ready to merge.
+7. After merges, run Sync and Check. Rebuild/redeploy the preview only if the composed source changes, preserving the actual running revision and corresponding-source offer.
 
 A source conflict still needs review. The helper automates routine history movement; it does not promise that overlapping edits can never conflict, merge upstream PRs, deploy services, or create scheduled jobs.
 
@@ -55,6 +56,8 @@ An entry records the feature's delta boundary, not a guessed merge base:
 ```
 
 `remote_head` is the lease protecting someone else's newer work. Never overwrite it to suppress a mismatch. Review external changes before updating the manifest.
+
+If a maintainer lands several stacked PRs in one squash and closes the included parent, the helper deliberately stops. Verify the closed head is an ancestor of the accepted child, compare that child's tree with the upstream squash, and retain the maintainer's disposition link. Then remove only the verified included entry from the active manifest and run Sync. Do not reopen it or override a closed-state check without that evidence. Web #52 included by #53 is the first recorded example.
 
 ## What Sync actually does
 

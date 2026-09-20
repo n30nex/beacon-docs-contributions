@@ -34,14 +34,15 @@ Server order: **#149 → #154 → #157 → #159**.
 | [Server #157](https://github.com/MeshCore-Beacon/beacon-server/pull/157) | Bounded SNR/RSSI distributions and hourly statistics | Complete endpoint scope in #156 |
 | [Server #159](https://github.com/MeshCore-Beacon/beacon-server/pull/159) | Bounded received-path and hash-width statistics | Complete endpoint scope in #158 |
 
-Web order: **#52 → #53 → #55 → #57**. Observer comparison [#48](https://github.com/MeshCore-Beacon/beacon-web/pull/48) and foreign-node display [#49](https://github.com/MeshCore-Beacon/beacon-web/pull/49) are merged; issue #26 is closed.
+Web order: **#59 → #55 → #57**. The icon correction #59 can land independently; #55/#57 wait until their server endpoints are merged and deployed. Traffic #52 landed verbatim in the #53 squash (`e01c090`); #52 was closed as included, and #53 is merged. Issues #50/#51 are closed. Observer comparison [#48](https://github.com/MeshCore-Beacon/beacon-web/pull/48) and foreign-node display [#49](https://github.com/MeshCore-Beacon/beacon-web/pull/49) are also merged.
 
 | PR | Scope | Dependency / issue |
 |---|---|---|
-| [Web #52](https://github.com/MeshCore-Beacon/beacon-web/pull/52) | Traffic heatmap, hourly trends and reception share | #50 |
-| [Web #53](https://github.com/MeshCore-Beacon/beacon-web/pull/53) | Regional scope charts and exact counts | After #52; #51 |
-| [Web #55](https://github.com/MeshCore-Beacon/beacon-web/pull/55) | RF / Signal charts and sample availability | After #53 and server #157; #54 |
-| [Web #57](https://github.com/MeshCore-Beacon/beacon-web/pull/57) | Paths & Hashes charts and classification coverage | After #55 and server #159; #56 |
+| [Web #52](https://github.com/MeshCore-Beacon/beacon-web/pull/52) | Traffic heatmap, hourly trends and reception share | Included in merged #53; #50 closed |
+| [Web #53](https://github.com/MeshCore-Beacon/beacon-web/pull/53) | Regional scope charts and exact counts | Merged as e01c090; #51 closed |
+| [Web #59](https://github.com/MeshCore-Beacon/beacon-web/pull/59) | Distinct Traffic, Scopes and Compare icons | Independent correction; #58 |
+| [Web #55](https://github.com/MeshCore-Beacon/beacon-web/pull/55) | RF / Signal charts and sample availability | After #59 and server #157 is merged and deployed; #54 |
+| [Web #57](https://github.com/MeshCore-Beacon/beacon-web/pull/57) | Paths & Hashes charts and classification coverage | After #55 and server #159 is merged and deployed; #56 |
 
 The router foundation [server #155](https://github.com/MeshCore-Beacon/beacon-server/pull/155) is merged. The refresh workflow drops accepted squash parents, preserves focused feature deltas and handles changed branch history in isolated worktrees. See [the executable contributor workflow](CONTRIBUTOR_WORKFLOW.md).
 
@@ -63,14 +64,14 @@ The router foundation [server #155](https://github.com/MeshCore-Beacon/beacon-se
 
 The path page counts stored receptions, not unique devices. Flood paths accumulate entries, while direct routes carry remaining entries. Observed widths do not establish device capability or collision rates. Signal readings describe reception at the reporting observer rather than a complete end-to-end link.
 
-Both new aggregate APIs accept explicit windows of at most 30 days, propagate cancellation, use region-specific caching and have a 15-second execution bound. A raw 30-day global query can still take seconds at larger volumes. On a shared Pi with one million synthetic rows, signal queries measured about 2.1–6.5 seconds and path queries 2.8–7.5 seconds across prepared-plan modes. Measure production volume before choosing precomputed distributions or claiming release readiness.
+The September 20 review correction moves both new aggregate APIs onto materialized hourly snapshots, preserving reception/region semantics and normalizing polling windows to UTC hours. In a rolled-back million-row Pi fixture, Signal request queries took 1.8–77.5 ms and Paths 3.5–141.9 ms across custom/generic plans. Initial population took 14.4/8.4 seconds, refresh 16.8/6.2 seconds, and view/index storage was 6.5/11.3 MB respectively. These measurements cover the fixture, not the full production workload. See the [release consolidation checklist](RELEASE-CHECKLIST.md) for remaining gates.
 
-The current combined preview has passed native Go/PostgreSQL/HTTP validation and **781 web tests**, plus desktop/mobile layout checks at 320/390/768/1280px. Synthetic fixtures tested gaps, trace/unclassified data, zero samples, errors/retry and long windows; they were not published. Current revisions and corresponding-source archives are on the preview's changelog page.
+The current combined preview has passed native Go/PostgreSQL/HTTP validation and **781 web tests**. Private backup checks cover version compatibility, feature-only startup failure, TLS/password files, cancellation and schema/data/sequence restoration. The review update passed 390/1280px browser checks, with ten distinct glyphs and explicit complete-hour text; earlier chart validation also covered 320/768px. Public Signal/Paths counts reconcile with SQL, both MQTT feeds advance and the browser reports LIVE. Current revisions and corresponding-source archives are on the preview's changelog page.
 
 ## Next phases
 
-1. **Review feedback and regressions first.** Refresh both application queues, resolve attributable failures, and retain explicit issue scope.
-2. **Channel Activity analytics.** Inspect existing aggregates and add bounded channel traffic/trend views. Define messages versus receptions, unknown/encrypted-channel coverage and the behavior when keys are unavailable. Keep keys and message contents out of aggregate responses; avoid raw-message paging to build statistics.
+1. **Finish the current queue and prepare a consolidation release.** Address all four server reviews and the analytics icon regression [web #58](https://github.com/MeshCore-Beacon/beacon-web/issues/58). Validate the combined candidate on the Pi, retain backend-before-frontend deployment order, then hand reviewed `dev` candidates to maintainers for the server/web main releases. Follow [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md). Pause new analytics until this breakpoint; this release does not claim complete CoreScope parity.
+2. **After the consolidation release: Channel Activity analytics.** Inspect existing aggregates and add bounded channel traffic/trend views. Define messages versus receptions, unknown/encrypted-channel coverage and the behavior when keys are unavailable. Keep keys and message contents out of aggregate responses; avoid raw-message paging to build statistics.
 3. **Observed ambiguity and topology.** Separate static prefix conflicts from observed unresolved/ambiguous paths. Add justified route-pattern, neighbour, hop and distance views with clear provenance and bounded work.
 4. **Queued administration and backup slices.** Add non-destructive archive validation, then resolve browser login/session, import and deployment-file coverage separately. Test restoration against disposable databases.
 5. **Production evidence and handoff.** Reconcile history, operational limits and the parity matrix below before preparing a release/cutover handoff.
@@ -84,6 +85,7 @@ The current combined preview has passed native Go/PostgreSQL/HTTP validation and
 | [Server #60](https://github.com/MeshCore-Beacon/beacon-server/issues/60) | Remaining administration/worker/persistence behavior; account records do not establish login sessions |
 | [Server #72](https://github.com/MeshCore-Beacon/beacon-server/issues/72) | Archive validation/import, browser access, deployment-file coverage and remote/scheduled backup scope |
 | [Web #12](https://github.com/MeshCore-Beacon/beacon-web/issues/12) | Supported-language and formatting scope for internationalization |
+| [Web #58](https://github.com/MeshCore-Beacon/beacon-web/issues/58) | Distinct analytics navigation icons, including pending RF/Signal and Paths pages |
 
 The analytics endpoint/page issues remain open while their corresponding PRs await merge. Use closing references only when a PR completes the issue's accepted scope; use related references for partial work.
 
