@@ -10,6 +10,8 @@ The deployment owner performs the eventual CoreScope switch. Beacon remains at d
 
 Independent follow-up [server #160](https://github.com/MeshCore-Beacon/beacon-server/pull/160) adds offline archive verification and does not block or expand this release's required queue. Its separately installed Pi CLI is `262eae96`; the running server/web stay unchanged. Required native and compiled PostgreSQL checks pass, with Windows race coverage because the Pi race runtime cannot initialize. Decide explicitly whether to include the CLI follow-up when freezing the release; issue #72 remains partial either way.
 
+Independent follow-up [server #161](https://github.com/MeshCore-Beacon/beacon-server/pull/161), `0befdc5c`, adds ACK/TRACE/PING summaries in the existing packet display and also leaves the release queue independent. It merges cleanly with the reviewed stack. Combined server `5848d200` is on the Pi with web `42ba5fcb`; native PostgreSQL, Windows race, CI and public REST/live/browser checks pass. No schema/config changes or extra public admin access. Include it only if accepted when freezing; #99 remains partial for other requested formats.
+
 ## Review gates
 
 - [x] Server #149: document POST/DELETE browser preflights and the full admin CORS method example. Keep public read-only defaults.
@@ -42,7 +44,7 @@ A consolidation release must document its actual retention behavior and capacity
 - [x] Real preview analytics reconcile with SQL for the materialized window. Browser charts, complete-hour text, small screens and error/empty/retry states are verified. Both MQTT feeds advance and the public browser reports LIVE.
 - [x] Current and rollback server/web artifacts, exact source offers and visible changelog match the running pair. Only the Beacon app restarted; the other 20 containers were preserved. Additive rollup migrations retain observations and are compatible with the previous binary.
 
-The immediate frontend rollback is web `19672038` with the unchanged server `6be0f762`. The earlier full rollback pair, server `4f6679c8` / web `b1100972`, is also retained. The local deployment record preserves its binaries, assets, source archives and runner. Rolling back the application keeps the additive rollup views; it does not remove history.
+The immediate server rollback from the packet-reference update is `6be0f762` with current web `42ba5fcb`. The previous frontend rollback `19672038` and earlier full pair, server `4f6679c8` / web `b1100972`, are also retained. The local deployment record preserves binaries, assets, source archives and runners. Rolling back the application keeps the additive rollup views; it does not remove history.
 
 ## Maintainer release handoff
 

@@ -34,8 +34,11 @@ Server order: **#149 → #154 → #157 → #159**.
 | [Server #157](https://github.com/MeshCore-Beacon/beacon-server/pull/157) | Bounded SNR/RSSI distributions and hourly statistics | Complete endpoint scope in #156 |
 | [Server #159](https://github.com/MeshCore-Beacon/beacon-server/pull/159) | Bounded received-path and hash-width statistics | Complete endpoint scope in #158 |
 | [Server #160](https://github.com/MeshCore-Beacon/beacon-server/pull/160) | Offline, non-destructive backup archive verification | Independent accepted-dev parent `951b79b`; partial #72, outside the shared stack |
+| [Server #161](https://github.com/MeshCore-Beacon/beacon-server/pull/161) | ACK identifiers and TRACE/PING tags in packet summaries | Independent accepted-dev parent `951b79b`; partial #99, clean overlay on the shared stack |
 
-#160 is an independent CLI follow-up and does not block the consolidation release. Candidate `262eae96` passes Windows/native Pi build, format, vet and unit checks, Windows race checks, malformed-input/fuzz cases, and exact compiled PostgreSQL export/verify/restore; CI/CodeQL pass. The Pi race runtime cannot initialize on its kernel and is recorded as unavailable. The CLI is installed separately, with its own source link on the preview changelog; server `6be0f762` / web `42ba5fc` and all 21 existing containers were preserved. The validator checks archive structure and integrity, not authenticity, safe SQL or restorability.
+#160 is an independent CLI follow-up and does not block the consolidation release. Candidate `262eae96` passes Windows/native Pi build, format, vet and unit checks, Windows race checks, malformed-input/fuzz cases, and exact compiled PostgreSQL export/verify/restore; CI/CodeQL pass. The Pi race runtime cannot initialize on its kernel and is recorded as unavailable. The CLI remains installed separately, with its own source link on the preview changelog. The validator checks archive structure and integrity, not authenticity, safe SQL or restorability.
+
+#161 at `0befdc5c` also remains independent. Native builds of the standalone and combined candidates pass, including 28 PostgreSQL fixtures that keep each global/regional/backfill read to one query; Windows ingest race checks and CI/CodeQL pass. Public historical summaries and a live PING match packet detail, with 1280px/390px browser checks and no horizontal overflow. The existing web renders the new text without a client release. References are packet-carried checksums/tags, not identities or delivery/authentication guarantees. No message body or trace auth code is added. This follow-up does not block the consolidation release.
 
 Web order: **#59 → #55 → #57**, with independent map correction **#61** also ready. The icon correction #59 can land independently; #55/#57 wait until their server endpoints are merged and deployed. Traffic #52 landed verbatim in the #53 squash (`e01c090`); #52 was closed as included, and #53 is merged. Issues #50/#51 are closed. Observer comparison [#48](https://github.com/MeshCore-Beacon/beacon-web/pull/48) and foreign-node display [#49](https://github.com/MeshCore-Beacon/beacon-web/pull/49) are also merged.
 
@@ -72,7 +75,7 @@ The September 20 review correction moves both new aggregate APIs onto materializ
 
 The current combined preview has passed native Go/PostgreSQL/HTTP validation and **786 web tests**. Private backup checks cover version compatibility, feature-only startup failure, TLS/password files, cancellation and schema/data/sequence restoration. The review update passed 390/1280px browser checks, with ten distinct glyphs and explicit complete-hour text; earlier chart validation also covered 320/768px. Public Signal/Paths counts reconcile with SQL, both MQTT feeds advance and the browser reports LIVE. Current revisions and corresponding-source archives are on the preview's changelog page.
 
-The current Pi web build is `42ba5fc` with server `6be0f762`. The map correction preserves stored records and valid equator/prime-meridian positions; browser checks with real data confirm the false origin cluster and Atlantic links are gone with neighbour lines enabled. All service containers remained unchanged during this frontend-only update.
+The current Pi build is server `5848d200` with unchanged web `42ba5fcb`. It composes #161 with the reviewed server stack; no existing PR branch was rewritten. Both MQTT feeds advance, schema/config remain unchanged and the other 20 containers were preserved. Packet-reference reads took 4.39–22.83 ms at the origin. The map correction and separate backup-verifier tool remain included. Current/rollback source and binaries are retained; only verified inactive staging was retired.
 
 ## Next phases
 
@@ -87,7 +90,7 @@ The current Pi web build is `42ba5fc` with server `6be0f762`. The map correction
 | Issue | Remaining scope |
 |---|---|
 | [Server #116](https://github.com/MeshCore-Beacon/beacon-server/issues/116) | Attribute repeated MQTT ping timeouts to a measured cause; fresh traffic alone is insufficient |
-| [Server #99](https://github.com/MeshCore-Beacon/beacon-server/issues/99) | Define and complete remaining packet-type summary coverage after advert summaries |
+| [Server #99](https://github.com/MeshCore-Beacon/beacon-server/issues/99) | Advert names are accepted; ACK/TRACE/PING references in #161 await review; define any remaining packet-type formats |
 | [Server #60](https://github.com/MeshCore-Beacon/beacon-server/issues/60) | Remaining administration/worker/persistence behavior; account records do not establish login sessions |
 | [Server #72](https://github.com/MeshCore-Beacon/beacon-server/issues/72) | Archive validation #160 awaits review; import, browser access, deployment-file coverage and remote/scheduled backup remain |
 | [Web #12](https://github.com/MeshCore-Beacon/beacon-web/issues/12) | Supported-language and formatting scope for internationalization |
