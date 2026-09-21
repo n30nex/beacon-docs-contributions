@@ -14,6 +14,7 @@ Independent follow-up [server #161](https://github.com/MeshCore-Beacon/beacon-se
 
 ## Review gates
 
+- [x] Workflow checks include every independent preview PR, not just the ordered stack. Status reports them; Check verifies their CI and source; Refresh/Publish reject changed prepared inputs. Server #161 and web #61 are covered by the normal preview checks. The standalone backup CLI #160 is checked with its separate manifest.
 - [x] Server #149: document POST/DELETE browser preflights and the full admin CORS method example. Keep public read-only defaults.
 - [x] Server #154: verify pg_dump/server compatibility at startup; an optional backup prerequisite failure disables only backup, with a specific operator diagnostic. Document backup.enabled and distinguish the export size limit. Native testing caught and fixed the text-versus-integer version-setting scan; CI now covers it with PostgreSQL.
 - [x] Server #157: serve Signal distributions and weighted means from compact materialized data; snap polling windows to hours, preserve missing/invalid/legacy sample semantics, and measure refresh/storage costs.

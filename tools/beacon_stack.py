@@ -106,6 +106,8 @@ def verify_publish_state(manifest, plan):
     active = active_entries(manifest['entries'], pulls)
     if plan['base'] != base or [e['pr'] for e in plan['entries']] != [e['pr'] for e in active]:
         raise RuntimeError('Upstream or merge state changed during validation; refresh again. Verified trees remain cached.')
+    if plan.get('preview_overlays', []) != active_overlays(manifest):
+        raise RuntimeError('Independent preview overlays changed during validation; refresh again. Verified trees remain cached.')
 
 
 def rebase(path, parent, previous_base, kind='server'):
@@ -199,18 +201,30 @@ def preview_tree(repo, head, overlays):
 
 
 def active_overlays(manifest):
-    heads = []
+    active = []
+    seen = {entry['pr'] for entry in manifest['entries']}
     for overlay in manifest.get('preview_overlays', []):
         if isinstance(overlay, str):
-            heads.append(overlay)
+            if not re.fullmatch(r'[a-f0-9]{40}', overlay):
+                raise RuntimeError('Independent preview boundaries must be exact commit IDs')
+            active.append(dict(pr=None, head=overlay))
             continue
+        if not isinstance(overlay, dict) or type(overlay.get('pr')) is not int or overlay['pr'] <= 0:
+            raise RuntimeError('Independent preview PRs need a positive PR number')
+        if not isinstance(overlay.get('head'), str) or not re.fullmatch(r'[a-f0-9]{40}', overlay['head']):
+            raise RuntimeError('Independent preview boundaries must be exact commit IDs')
+        if overlay['pr'] in seen:
+            raise RuntimeError('An independent preview PR is listed more than once or also in the ordered stack')
+        seen.add(overlay['pr'])
         pull = json.loads(command(['gh', 'api', f"repos/{manifest['upstream']}/pulls/{overlay['pr']}"]).stdout)
+        if pull['base']['ref'] != 'dev':
+            raise RuntimeError('Unexpected independent preview PR target; this workflow only targets dev')
         if pull['merged']:
             continue
         if pull['state'] != 'open' or pull['head']['sha'] != overlay['head'] or pull['head']['repo']['full_name'] != manifest['fork']:
-            raise RuntimeError('An independent preview candidate changed; review it before composing the preview')
-        heads.append(overlay['head'])
-    return heads
+            raise RuntimeError(f"An independent preview candidate (PR #{overlay['pr']}) changed; review it before continuing")
+        active.append(dict(pr=overlay['pr'], head=overlay['head']))
+    return active
 
 
 def simulate_squash_order(repo, base, entries):
@@ -250,6 +264,7 @@ def main(mode, manifest_path=MANIFEST, state=STATE, branch=None):
         if pull['head']['repo']['full_name'] != manifest['fork']:
             raise RuntimeError('Unexpected fork identity')
     entries = active_entries(manifest['entries'], pulls)
+    overlays = active_overlays(manifest)
     base = command(['gh', 'api', f"repos/{manifest['upstream']}/commits/dev", '--jq', '.sha']).stdout.strip()
     parent = base
     needs_refresh = False
@@ -259,14 +274,19 @@ def main(mode, manifest_path=MANIFEST, state=STATE, branch=None):
     if mode == 'check':
         if needs_refresh:
             raise RuntimeError('The stack has an outdated parent; refresh before relying on previous checks')
+        if any(overlay['pr'] is None for overlay in overlays):
+            raise RuntimeError('Independent preview commits need a PR/head record before GitHub checks can be verified')
         results = []
-        for entry in entries:
+        targets = [(entry, False) for entry in entries] + [(dict(overlay, remote_head=overlay['head']), True) for overlay in overlays]
+        for entry, is_overlay in targets:
             result = command(['gh', 'pr', 'checks', str(entry['pr']), '-R', manifest['upstream'],
                               '--json', 'name,state,bucket,link'], check=False)
             checks = json.loads(result.stdout) if result.stdout.lstrip().startswith('[') else []
-            passed = bool(checks) and all(c['bucket'] == 'pass' or (c['bucket'] == 'skipping' and c['name'] in manifest.get('allowed_skips', [])) for c in checks) and any(c['name'] == 'build' and c['bucket'] == 'pass' for c in checks)
-            results.append(dict(pr=entry['pr'], head=entry['remote_head'],
+            passed = result.returncode == 0 and bool(checks) and all(c['bucket'] == 'pass' or (c['bucket'] == 'skipping' and c['name'] in manifest.get('allowed_skips', [])) for c in checks) and any(c['name'] == 'build' and c['bucket'] == 'pass' for c in checks)
+            results.append(dict(pr=entry['pr'], head=entry['remote_head'], preview_overlay=is_overlay,
                                 source_verified=entry['head'] == entry['remote_head'], passed=passed, checks=checks))
+        # A PR-number check can otherwise race with a new push or accepted merge.
+        verify_publish_state(manifest, dict(base=base, entries=entries, preview_overlays=overlays))
         write(state/'github-checks.json', results)
         print(json.dumps(results, indent=2))
         if not all(r['source_verified'] and r['passed'] for r in results):
@@ -274,6 +294,8 @@ def main(mode, manifest_path=MANIFEST, state=STATE, branch=None):
         return
     if mode == 'status':
         print(json.dumps(dict(upstream=base, order=[e['pr'] for e in entries], needs_refresh=needs_refresh,
+                              preview_overlays=overlays,
+                              unverified_overlays=[o['head'] for o in overlays if o['pr'] is None],
                               merged=[e['pr'] for e, p in zip(manifest['entries'], pulls) if p['merged']],
                               unpublished=[e['pr'] for e in entries if e['head'] != e['remote_head']]), indent=2))
         return
@@ -337,9 +359,12 @@ def main(mode, manifest_path=MANIFEST, state=STATE, branch=None):
             parent = entry['head']
             print(f"#{entry['pr']}: {parent[:8]} - {'reused verified tree' if entry['validation']['reused'] else 'checks passed'}", flush=True)
         proof = simulate_squash_order(repo, base, entries)
-        combined_tree = preview_tree(repo, parent, active_overlays(manifest))
-        plan = dict(base=base, entries=entries, squash_merge_proof=proof, preview_tree=combined_tree,
+        # Refresh the independent inputs too, after potentially lengthy builds.
+        overlays = active_overlays(manifest)
+        combined_tree = preview_tree(repo, parent, [overlay['head'] for overlay in overlays])
+        plan = dict(base=base, entries=entries, preview_overlays=overlays, squash_merge_proof=proof, preview_tree=combined_tree,
                     pi_rebuild_needed=combined_tree != manifest.get('preview', {}).get('server_tree'))
+        verify_publish_state(manifest, plan)
         write(state/'prepared.json', plan)
         print('Stack merge order verified. Pi rebuild needed: '+str(plan['pi_rebuild_needed']), flush=True)
         if mode == 'refresh':

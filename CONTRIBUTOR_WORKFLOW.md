@@ -68,7 +68,7 @@ If a maintainer lands several stacked PRs in one squash and closes the included 
 - Rechecks upstream and PR state immediately before publishing, including after a long validation run. If a merge happened meanwhile, it stops and retains reusable receipts.
 - Publishes changed fork branches atomically with explicit leases, verifies remote heads and reports current CI separately.
 
-`refresh` prepares without pushing; `publish` publishes a prepared result after fresh checks. `sync` combines both. `check` requires current published heads and passing required checks; only explicitly configured skipped jobs are allowed.
+`refresh` prepares without pushing; `publish` publishes a prepared result after fresh checks. `sync` combines both. `check` requires current published heads and passing required checks for the ordered queue **and every active independent preview PR**; only explicitly configured skipped jobs are allowed. A passing build is required for each. The helper rechecks source/merge state after reading CI and stops if it observes a changed head or merge state.
 
 Local validation reuse does not suppress GitHub's checks on a changed head. The first refresh after an independent change joins several candidates can require new combination checks; later identical-tree refreshes reuse those receipts.
 
@@ -76,7 +76,11 @@ Local validation reuse does not suppress GitHub's checks on a changed head. The 
 
 Set `preview.server_tree` to the verified composed Git tree only after native/public validation. This field is also used in the web manifest for compatibility. A different commit with an identical tree does not require rebuilding or relabeling an existing artifact. Keep the real built revision/source archive.
 
-Independent pending work can be listed in `preview_overlays` as `{"pr": 123, "head": "EXACT_COMMIT"}`. Merged overlays drop automatically; changed or unmerged-closed overlays stop composition. Keep overlapping changes in the main ordered queue.
+Independent pending work can be listed in `preview_overlays` as `{"pr": 123, "head": "EXACT_COMMIT"}`. Use full 40-character commit IDs and list each PR only once, outside the ordered queue. Status lists the active overlays; Check includes their CI results, marked `preview_overlay: true`. Merged overlays drop automatically; changed, unmerged-closed, wrong-fork or wrong-target overlays stop the workflow. Keep overlapping changes in the main ordered queue.
+
+Refresh records the exact independent inputs in its prepared plan and verifies them after local validation. Publish rechecks them immediately before pushing. If an overlay moved, merged or was added/removed after preparation, refresh again; unchanged source still reuses validation. Prepared files made by older helper versions without an overlay snapshot must be refreshed when active overlays exist. This does not require rebasing unrelated PRs or rebuilding an identical preview.
+
+Legacy bare commit overlays can still be composed, but Status marks them unverified and Check refuses to report a complete green result without a PR/head record. Standalone tools that are not part of the app preview, such as the backup-verifier CLI, retain their separate manifests/checks.
 
 After all queued changes merge, Sync leaves an empty queue. Start then creates the next branch directly from current `dev`. This is the normal path for a new phase, without carrying historical feature commits forward.
 
@@ -92,4 +96,4 @@ The Canadaverse workspace keeps its required site guard in the local wrapper. Pu
 python -m unittest discover -s tools -p test_beacon_stack.py -v
 ```
 
-Tests cover squash/drop-parent behavior, a fresh phase after all merges, cache reuse, environment changes, independent overlays, dirty/default-branch rejection, source conflicts and upstream movement during validation. They use disposable local Git repositories and no GitHub or Pi credentials.
+Tests cover squash/drop-parent behavior, a fresh phase after all merges, cache reuse, environment changes, independent overlay CI/state/identity checks, missing or pending checks, skipped-job policy, publication races, dirty/default-branch rejection, source conflicts and upstream movement during validation. They use disposable local Git repositories and no GitHub or Pi credentials.

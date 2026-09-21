@@ -1,11 +1,167 @@
 """Offline regression checks for the local stack helper; no GitHub/Pi access."""
+from contextlib import redirect_stdout
+import io
 import json
 from pathlib import Path
+import subprocess
 import tempfile
 import unittest
 from unittest.mock import patch
 
 import beacon_stack as stack
+
+
+class PreviewCheckTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory(prefix='beacon-preview-check-')
+        self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name)
+        self.manifest = dict(repo='unused', upstream='MeshCore-Beacon/beacon-web',
+            fork='example/beacon-web', remote='contribution', entries=[
+                dict(pr=1, branch='codex/one', base='a'*40, head='b'*40, remote_head='b'*40)],
+            preview_overlays=[dict(pr=2, head='c'*40)])
+        self.pulls = {number: dict(merged=False, state='open', base=dict(ref='dev'),
+            head=dict(sha=head, ref='codex/one', repo=dict(full_name='example/beacon-web')))
+            for number, head in ((1, 'b'*40), (2, 'c'*40))}
+        self.checks = {number: [dict(name='build', state='SUCCESS', bucket='pass', link='https://example.invalid/check')]
+                       for number in (1, 2)}
+        self.commands = []
+        self.on_checks = lambda number: None
+
+    def command(self, args, **kwargs):
+        self.commands.append(args)
+        if args[:2] == ['gh', 'api']:
+            output = 'a'*40 if args[2].endswith('/commits/dev') else json.dumps(self.pulls[int(args[2].split('/')[-1])])
+            return subprocess.CompletedProcess(args, 0, output)
+        if args[:3] == ['gh', 'pr', 'checks']:
+            number = int(args[3])
+            checks = self.checks[number]
+            code = 0 if all(c['bucket'] in ('pass', 'skipping') for c in checks) else 1
+            self.on_checks(number)
+            return subprocess.CompletedProcess(args, code, json.dumps(checks))
+        raise AssertionError(f'Unexpected external command: {args}')
+
+    def run_main(self, mode='check'):
+        path = self.root/'manifest.json'
+        stack.write(path, self.manifest)
+        output = io.StringIO()
+        with patch.object(stack, 'GUARD_SCRIPT', None), patch.object(stack, 'check_remotes'), \
+             patch.object(stack, 'command', side_effect=self.command), redirect_stdout(output):
+            stack.main(mode, path, self.root/'state')
+        return json.loads(output.getvalue())
+
+    def test_failed_overlay_prevents_a_green_check(self):
+        self.checks[2][0].update(state='FAILURE', bucket='fail')
+        with self.assertRaisesRegex(RuntimeError, 'incomplete/failing'):
+            self.run_main()
+
+    def test_changed_overlay_stops_check(self):
+        self.pulls[2]['head']['sha'] = 'd'*40
+        with self.assertRaisesRegex(RuntimeError, 'independent preview'):
+            self.run_main()
+
+    def test_check_reports_the_overlay_and_ordered_pr(self):
+        rows = self.run_main()
+        self.assertEqual({row['pr'] for row in rows}, {1, 2})
+        self.assertTrue(all(row['passed'] and row['source_verified'] for row in rows))
+        self.assertEqual({row['pr'] for row in rows if row['preview_overlay']}, {2})
+
+    def test_pending_or_missing_overlay_checks_fail(self):
+        for checks in ([], [dict(name='build', state='PENDING', bucket='pending')]):
+            with self.subTest(checks=checks):
+                self.checks[2] = checks
+                with self.assertRaisesRegex(RuntimeError, 'incomplete/failing'):
+                    self.run_main()
+
+    def test_overlay_uses_the_explicit_skip_policy_and_requires_a_build(self):
+        self.checks[2].append(dict(name='Analyze', state='SKIPPED', bucket='skipping'))
+        with self.assertRaisesRegex(RuntimeError, 'incomplete/failing'):
+            self.run_main()
+        self.manifest['allowed_skips'] = ['Analyze']
+        self.assertTrue(all(row['passed'] for row in self.run_main()))
+        self.checks[2] = self.checks[2][1:]
+        with self.assertRaisesRegex(RuntimeError, 'incomplete/failing'):
+            self.run_main()
+
+    def test_a_failed_check_command_cannot_pass_from_partial_output(self):
+        original = self.command
+        def failed_command(args, **kwargs):
+            result = original(args, **kwargs)
+            if args[:4] == ['gh', 'pr', 'checks', '2']:
+                result.returncode = 1
+            return result
+        with patch.object(self, 'command', side_effect=failed_command):
+            with self.assertRaisesRegex(RuntimeError, 'incomplete/failing'):
+                self.run_main()
+
+    def test_merged_overlay_is_dropped_but_unmerged_closure_stops(self):
+        self.pulls[2].update(merged=True, state='closed')
+        self.assertEqual([row['pr'] for row in self.run_main()], [1])
+        self.assertNotIn(['gh', 'pr', 'checks', '2'], [c[:4] for c in self.commands])
+        self.pulls[2]['merged'] = False
+        with self.assertRaisesRegex(RuntimeError, 'independent preview'):
+            self.run_main()
+
+    def test_wrong_overlay_fork_or_base_stops(self):
+        self.pulls[2]['head']['repo']['full_name'] = 'unexpected/beacon-web'
+        with self.assertRaisesRegex(RuntimeError, 'independent preview'):
+            self.run_main()
+        self.pulls[2]['head']['repo']['full_name'] = self.manifest['fork']
+        self.pulls[2]['base']['ref'] = 'main'
+        with self.assertRaisesRegex(RuntimeError, 'target'):
+            self.run_main()
+
+    def test_status_lists_independent_inputs_and_stops_on_drift(self):
+        result = self.run_main('status')
+        self.assertEqual(result['preview_overlays'], [dict(pr=2, head='c'*40)])
+        self.pulls[2]['head']['sha'] = 'd'*40
+        with self.assertRaisesRegex(RuntimeError, 'independent preview'):
+            self.run_main('status')
+
+    def test_unlinked_commits_are_visible_but_cannot_receive_a_green_check(self):
+        self.manifest['preview_overlays'] = ['c'*40]
+        status = self.run_main('status')
+        self.assertEqual(status['unverified_overlays'], ['c'*40])
+        with self.assertRaisesRegex(RuntimeError, 'PR/head record'):
+            self.run_main()
+
+    def test_invalid_or_duplicate_overlay_records_stop_before_checks(self):
+        for overlays in (['--exec=untrusted'], [dict(pr=2, head='HEAD')],
+                         [dict(pr=True, head='c'*40)], [dict(pr=2, head=None)],
+                         [dict(pr=1, head='b'*40)], [dict(pr=2, head='c'*40)]*2):
+            with self.subTest(overlays=overlays):
+                self.manifest['preview_overlays'] = overlays
+                self.commands.clear()
+                with self.assertRaises(RuntimeError):
+                    self.run_main()
+                self.assertFalse(any(c[:3] == ['gh', 'pr', 'checks'] for c in self.commands))
+
+    def test_a_push_during_checks_is_detected_for_both_kinds_of_pr(self):
+        for number in (1, 2):
+            with self.subTest(number=number):
+                original = self.pulls[number]['head']['sha']
+                def push(checked):
+                    if checked == 2:
+                        self.pulls[number]['head']['sha'] = 'd'*40
+                self.on_checks = push
+                with self.assertRaisesRegex(RuntimeError, 'changed'):
+                    self.run_main()
+                self.pulls[number]['head']['sha'] = original
+
+    def test_publication_requires_the_same_independent_inputs_as_preparation(self):
+        plan = dict(base='a'*40, entries=self.manifest['entries'], preview_overlays=[dict(pr=2, head='c'*40)])
+        with patch.object(stack, 'command', side_effect=self.command):
+            stack.verify_publish_state(self.manifest, plan)
+            # Old prepared files cannot silently omit an active overlay.
+            with self.assertRaisesRegex(RuntimeError, 'preview overlays changed'):
+                stack.verify_publish_state(self.manifest, dict(base=plan['base'], entries=plan['entries']))
+            self.pulls[2]['merged'] = True
+            with self.assertRaisesRegex(RuntimeError, 'preview overlays changed'):
+                stack.verify_publish_state(self.manifest, plan)
+            self.pulls[2]['merged'] = False
+            self.pulls[2]['head']['sha'] = 'd'*40
+            with self.assertRaisesRegex(RuntimeError, 'independent preview'):
+                stack.verify_publish_state(self.manifest, plan)
 
 
 class StackTests(unittest.TestCase):
