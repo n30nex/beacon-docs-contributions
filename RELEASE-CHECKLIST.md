@@ -1,16 +1,18 @@
 # Server/web consolidation release
 
-Status: preparation, not a published release or a full CoreScope parity claim. Updated 20 September 2026 after maintainer review of the four server PRs.
+Status: accepted-dev validation and release handoff, 24 September 2026. All ten application/CLI PRs are merged. Stable tags remain unchanged; this is not a published release or a full CoreScope parity claim.
 
 ## Scope and stop point
 
-Finish the current account/backup/analytics queue, correct review regressions, and release that bounded set before Channel Activity or further parity expansion. Current public tags are server v1.6.0 and web v1.3.0; maintainers choose the next versions and perform signed release commits, main promotion and tags under each repository's contribution rules.
+Release the accepted account/backup/analytics batch before Channel Activity or further parity expansion. Current public tags are server v1.6.0 and web v1.3.0; maintainers choose the next versions and perform signed release commits, main promotion and tags under each repository's contribution rules.
 
 The deployment owner performs the eventual CoreScope switch. Beacon remains at dev.meshcore.ca, CoreScope at live.meshcore.ca, and the Pi preview remains at canadaverse.org/beacon-dev/ with its changelog and corresponding source.
 
-Independent follow-up [server #160](https://github.com/MeshCore-Beacon/beacon-server/pull/160) adds offline archive verification and does not block or expand this release's required queue. Its separately installed Pi CLI is `262eae96`; the running server/web stay unchanged. Required native and compiled PostgreSQL checks pass, with Windows race coverage because the Pi race runtime cannot initialize. Decide explicitly whether to include the CLI follow-up when freezing the release; issue #72 remains partial either way.
+The release candidate includes both formerly independent follow-ups: [server #160](https://github.com/MeshCore-Beacon/beacon-server/pull/160) for offline archive verification and [server #161](https://github.com/MeshCore-Beacon/beacon-server/pull/161) for ACK/TRACE/PING summaries. Their wider issues #72 and #99 remain partial. Integrity checks do not establish archive authenticity or restorability; packet references do not establish identity or delivery.
 
-Independent follow-up [server #161](https://github.com/MeshCore-Beacon/beacon-server/pull/161), `0befdc5c`, adds ACK/TRACE/PING summaries in the existing packet display and also leaves the release queue independent. It merges cleanly with the reviewed stack. Combined server `5848d200` is on the Pi with web `42ba5fcb`; native PostgreSQL, Windows race, CI and public REST/live/browser checks pass. No schema/config changes or extra public admin access. Include it only if accepted when freezing; #99 remains partial for other requested formats.
+Accepted server: `c02317a4ac7228d19cab498edfa1d61186c84626`.
+Accepted web: `0f0a6ca51c7b2c3315db77954f61b30bbdeea5e2`.
+The web source tree is identical to tested preview `42ba5fcb`; preserve that artifact's actual revision/source instead of relabeling it. The server differs from preview `5848d200` only in the verifier CLI/library/tests/docs; its verifier code and tests are identical to separately tested `262eae96`. The documentation additionally contains the accepted protected-download section.
 
 ## Review gates
 
@@ -24,19 +26,27 @@ Independent follow-up [server #161](https://github.com/MeshCore-Beacon/beacon-se
 - [x] Refresh #55/#57 after the accepted #52/#53 squash. Their source trees were identical after the September 20 refresh; that history-only update needs no replacement Pi artifact.
 - [x] All eight application PRs pass their required checks on the published heads. Native PostgreSQL tests ran. The upstream web CodeQL job remains skipped under its existing policy and is not counted as a scan.
 
-These checkmarks record completed corrections and validation, not maintainer approval. The four server PRs, four web PRs and docs #5 still await their merge/review decisions.
-
-Review order is server #149 -> #154 -> #157 -> #159. Web #55 waits for #157 to be merged **and deployed**; #57 waits for #159 to be merged and deployed and for #55. The icon fix can be reviewed independently. Traffic and Scopes have already landed together as web e01c090; do not replay #52.
+All six server PRs and four web PRs have merged. Server #156/#158 and web #54/#56/#58/#60 are closed. Only docs #5 remains open. The helper retired accepted parents/overlays without rebasing or force-pushing any application branch. Future work starts from freshly fetched dev. Backend endpoints still need deployment before dependent pages on each operator's target; Pi evidence is not evidence of another deployment.
 
 ## Storage and retention boundary
 
 The September 17 drop-and-reset observation-partitioning design and implementation plan were explicitly superseded on September 19. They are historical reference only. Do not implement their table drop, history reset or process-local dedup replacement.
 
-The stated replacement direction is lz4 compression, batched deletes, per-table autovacuum tuning and a seven-day default. Those changes are not present in the verified published server dev 951b79b (its example still says 30 days). Obtain and review the replacement contribution before describing it as shipped. Coordinate append-only migration numbers with that work; the old plan's proposed 035 is not evidence that a migration exists.
+The stated replacement direction is lz4 compression, batched deletes, per-table autovacuum tuning and a seven-day default. Those changes are not present in the verified published server dev c02317a4 (its example still says 30 days). Obtain and review the replacement contribution before describing it as shipped. Coordinate append-only migration numbers with that work; the old plan's proposed 035 is not evidence that a migration exists.
 
 A consolidation release must document its actual retention behavior and capacity limits. A future production parity cutover also needs verified durable history coverage and recovery copies. Do not infer either from example configuration or the Pi's short history.
 
-## Combined-candidate evidence
+## Accepted-dev verification - 24 September
+
+- [x] Exact dev CI/image builds pass at server `c02317a4` and web `0f0a6ca5`; server CodeQL/coverage pass and web CodeQL remains skipped.
+- [x] Server `c02317a4` built/tested natively on the Pi with real PostgreSQL: 1,194 passing test/subtest results. Signal, Paths, observer comparison, migration recovery, packet summaries and NULL observations ran. Two opt-in backup export/download integration suites were skipped; prior private restore/TLS checks remain separately dated evidence.
+- [x] Accepted server is running on the preview. Source/asset hashes match; both feeds advance. Signal/Paths reconcile with SQL for global/regional 1/7/30-day selections, at 2-19 ms origin latency. Only three complete hours are populated; this does not prove 7/30-day history coverage.
+- [x] Browser Signal/Paths charts and map load with LIVE status and no captured warnings/errors. Unchanged frontend assets keep their actual `42ba5fcb` build/source identity and prior 786-test evidence; accepted `0f0a6ca5` has the identical tree.
+- [x] Only the Beacon app restarted; the other 22 containers and configuration/migration journal were preserved. Immediate rollback is server `5848d200` with unchanged web. The separate verifier retains its real `262eae96` binary/source identity.
+- [x] All four review queues and overlays are empty. Start creates a branch from accepted dev with no dependency/rebase. Completed issues are closed; five broader issues remain open.
+- [ ] Maintainer version selection, signed release commits, main promotion, tags and tag-built artifact verification. Stable releases remain v1.6.0 / v1.3.0.
+
+## Earlier combined-candidate evidence - 20 September
 
 - [x] September 20 unmodified Pi stability sample: 600 seconds / 41 samples, both feeds connected, 2,169 retained observations and no MQTT disconnect/deadline or HTTP 5xx. App/PostgreSQL CPU averaged 2.14%/3.96% of one core. This is a bounded health sample, not callback timing, #116 root-cause proof or a production-volume gate. [Result and limits](https://github.com/MeshCore-Beacon/beacon-server/issues/116#issuecomment-5753626821).
 - [x] Native Pi build/test of server `6be0f762` and web `42ba5fc`, including real PostgreSQL-to-HTTP checks and migration retry/concurrent refresh; 786 web tests pass.
@@ -46,13 +56,12 @@ A consolidation release must document its actual retention behavior and capacity
 - [x] Real preview analytics reconcile with SQL for the materialized window. Browser charts, complete-hour text, small screens and error/empty/retry states are verified. Both MQTT feeds advance and the public browser reports LIVE.
 - [x] Current and rollback server/web artifacts, exact source offers and visible changelog match the running pair. Only the Beacon app restarted; the other 20 containers were preserved. Additive rollup migrations retain observations and are compatible with the previous binary.
 
-The immediate server rollback from the packet-reference update is `6be0f762` with current web `42ba5fcb`. The previous frontend rollback `19672038` and earlier full pair, server `4f6679c8` / web `b1100972`, are also retained. The local deployment record preserves binaries, assets, source archives and runners. Rolling back the application keeps the additive rollup views; it does not remove history.
+The September 20 packet-reference rollback was `6be0f762` with web `42ba5fcb`; it remains an older recovery point. The current immediate rollback is `5848d200` with the same frontend. The local deployment record preserves binaries, assets, source archives and runners. Application rollback keeps additive rollup views and does not remove history.
 
 ## Maintainer release handoff
 
-1. Merge the reviewed queue in the declared order, using the shared refresh helper after accepted parents. Do not manually rebase every PR from scratch.
-2. Deploy the accepted server before merging/deploying pages that need its new endpoints. Verify endpoint availability on the intended deployment, not just the Pi preview.
-3. Freeze exact reviewed server/web dev heads and rerun required checks on them. Refresh the release notes with only changes actually included.
-4. Follow the server contribution guide for a signed version/Swagger commit, dev-to-main fast-forward, tag and release CI. Web main has a prior release squash (`5ac36ce`) outside dev ancestry; maintainers must reconcile that stable history before choosing its promotion method. Do not silently overwrite main.
-5. Verify the tag's Actions-built artifacts and matching source. Publish accurate release notes, upgrade/retention guidance, known gaps and rollback instructions.
-6. After both releases, empty the accepted review queues and start the next feature directly from freshly fetched dev. Resume the parity roadmap; this milestone does not close partial #60/#72, #99, #116 or internationalization #12.
+1. The application review queue is accepted. Freeze server `c02317a4` / web `0f0a6ca5`, or explicitly record any newer accepted changes before release. Confirm required checks on those exact heads.
+2. Deploy the accepted server before dependent pages and verify both endpoints on the intended deployment. The Pi is a development validation target; production cutover remains with the owner.
+3. Follow the server contribution guide for a signed version/Swagger commit, dev-to-main fast-forward, tag and release CI. Web main has the prior release squash `5ac36ce` outside dev ancestry; reconcile that stable history before promotion. Do not overwrite main.
+4. Verify the tag's Actions-built artifacts and matching source. Publish accurate notes, upgrade/retention guidance, known gaps and rollback instructions. Versions/tags have not been chosen by this contribution.
+5. Review the five remaining issues first when resuming development: server #60/#72/#99/#116 and web #12. These broad/partial issues remain open. After the consolidation release, Channel Activity is the next analytics page; this milestone does not establish full CoreScope parity.

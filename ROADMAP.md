@@ -1,6 +1,6 @@
 # Beacon parity and analytics roadmap
 
-Updated 20 September 2026. This is the working roadmap for n30nex's ongoing contributions toward CoreScope feature parity. Maintainers decide acceptance and merge order; deployment owners handle the production switch.
+Updated 24 September 2026. This is the working roadmap for n30nex's ongoing contributions toward CoreScope feature parity. Maintainers decide acceptance and merge order; deployment owners handle the production switch.
 
 Refresh GitHub issues, PR feedback and branch state before starting a phase. This document is a snapshot, and linked issues/PRs are the current source of truth.
 
@@ -23,37 +23,28 @@ Current sites:
 | [beacon-docs](https://github.com/MeshCore-Beacon/beacon-docs) | Shared contracts, operator guidance and this roadmap | `main` |
 | [beacon-mobile](https://github.com/MeshCore-Beacon/beacon-mobile) | Mobile client; coordinate API compatibility | `main` |
 
-## Current review queue
+## Accepted consolidation batch
 
-All active contribution PRs are available for review without draft status at the contributor's request. Dependencies still determine merge order. Review requests do not establish approval, and required checks must pass on the current published head.
+All ten server/web contributions merged into `dev` on 24 September UTC. There are no open application PRs or remaining application rebase dependencies. [Docs #5](https://github.com/MeshCore-Beacon/beacon-docs/pull/5) is the only open contribution PR.
 
-Server order: **#149 → #154 → #157 → #159**.
+Accepted server is `c02317a4ac7228d19cab498edfa1d61186c84626`; accepted web is `0f0a6ca51c7b2c3315db77954f61b30bbdeea5e2`. CI and image builds pass at these heads; web CodeQL remains skipped and is not a security scan. Stable releases are still server **v1.6.0** and web **v1.3.0**. Merged dev is not a published stable release.
 
-| PR | Scope | Issue disposition |
+| Accepted PR | Scope | Merge commit |
 |---|---|---|
-| [Server #149](https://github.com/MeshCore-Beacon/beacon-server/pull/149) | Protected operator-account lifecycle | Partial #60; these records are not browser logins |
-| [Server #154](https://github.com/MeshCore-Beacon/beacon-server/pull/154) | Protected database/config backup download | Partial #72; login, validation/import and deployment-file coverage remain |
-| [Server #157](https://github.com/MeshCore-Beacon/beacon-server/pull/157) | Bounded SNR/RSSI distributions and hourly statistics | Complete endpoint scope in #156 |
-| [Server #159](https://github.com/MeshCore-Beacon/beacon-server/pull/159) | Bounded received-path and hash-width statistics | Complete endpoint scope in #158 |
-| [Server #160](https://github.com/MeshCore-Beacon/beacon-server/pull/160) | Offline, non-destructive backup archive verification | Independent accepted-dev parent `951b79b`; partial #72, outside the shared stack |
-| [Server #161](https://github.com/MeshCore-Beacon/beacon-server/pull/161) | ACK identifiers and TRACE/PING tags in packet summaries | Independent accepted-dev parent `951b79b`; partial #99, clean overlay on the shared stack |
+| [Server #149](https://github.com/MeshCore-Beacon/beacon-server/pull/149) | add protected account lifecycle endpoints | `4d2642ab` |
+| [Server #154](https://github.com/MeshCore-Beacon/beacon-server/pull/154) | add protected database and config download | `a25e2675` |
+| [Server #157](https://github.com/MeshCore-Beacon/beacon-server/pull/157) | add bounded reception signal analytics | `6107578c` |
+| [Server #159](https://github.com/MeshCore-Beacon/beacon-server/pull/159) | add bounded path and hash-width analytics | `8a3fa7e6` |
+| [Server #160](https://github.com/MeshCore-Beacon/beacon-server/pull/160) | verify native archives offline without extraction | `20691dc5` |
+| [Server #161](https://github.com/MeshCore-Beacon/beacon-server/pull/161) | summarize ACK and trace references | `c02317a4` |
+| [Web #55](https://github.com/MeshCore-Beacon/beacon-web/pull/55) | add RF and signal analytics | `2405e1ac` |
+| [Web #57](https://github.com/MeshCore-Beacon/beacon-web/pull/57) | add Paths and Hashes analytics | `929ba83c` |
+| [Web #59](https://github.com/MeshCore-Beacon/beacon-web/pull/59) | distinguish analytics navigation icons | `c2ab29a5` |
+| [Web #61](https://github.com/MeshCore-Beacon/beacon-web/pull/61) | omit reset and invalid node locations | `0f0a6ca5` |
 
-#160 is an independent CLI follow-up and does not block the consolidation release. Candidate `262eae96` passes Windows/native Pi build, format, vet and unit checks, Windows race checks, malformed-input/fuzz cases, and exact compiled PostgreSQL export/verify/restore; CI/CodeQL pass. The Pi race runtime cannot initialize on its kernel and is recorded as unavailable. The CLI remains installed separately, with its own source link on the preview changelog. The validator checks archive structure and integrity, not authenticity, safe SQL or restorability.
+Server #156/#158 and web #54/#56/#58/#60 are closed. Server #60/#72/#99/#116 and web #12 remain open: the accepted work completes slices, not their remaining scope. Archive verification establishes structure and integrity, not authenticity, SQL safety or restorability. Packet-carried ACK/TRACE/PING references are not identity or delivery guarantees.
 
-#161 at `0befdc5c` also remains independent. Native builds of the standalone and combined candidates pass, including 28 PostgreSQL fixtures that keep each global/regional/backfill read to one query; Windows ingest race checks and CI/CodeQL pass. Public historical summaries and a live PING match packet detail, with 1280px/390px browser checks and no horizontal overflow. The existing web renders the new text without a client release. References are packet-carried checksums/tags, not identities or delivery/authentication guarantees. No message body or trace auth code is added. This follow-up does not block the consolidation release.
-
-Web order: **#59 → #55 → #57**, with independent map correction **#61** also ready. The icon correction #59 can land independently; #55/#57 wait until their server endpoints are merged and deployed. Traffic #52 landed verbatim in the #53 squash (`e01c090`); #52 was closed as included, and #53 is merged. Issues #50/#51 are closed. Observer comparison [#48](https://github.com/MeshCore-Beacon/beacon-web/pull/48) and foreign-node display [#49](https://github.com/MeshCore-Beacon/beacon-web/pull/49) are also merged.
-
-| PR | Scope | Dependency / issue |
-|---|---|---|
-| [Web #52](https://github.com/MeshCore-Beacon/beacon-web/pull/52) | Traffic heatmap, hourly trends and reception share | Included in merged #53; #50 closed |
-| [Web #53](https://github.com/MeshCore-Beacon/beacon-web/pull/53) | Regional scope charts and exact counts | Merged as e01c090; #51 closed |
-| [Web #61](https://github.com/MeshCore-Beacon/beacon-web/pull/61) | Omit reset/invalid map locations and false neighbour/path lines | Independent correction; #60 |
-| [Web #59](https://github.com/MeshCore-Beacon/beacon-web/pull/59) | Distinct Traffic, Scopes and Compare icons | Independent correction; #58 |
-| [Web #55](https://github.com/MeshCore-Beacon/beacon-web/pull/55) | RF / Signal charts and sample availability | After #59 and server #157 is merged and deployed; #54 |
-| [Web #57](https://github.com/MeshCore-Beacon/beacon-web/pull/57) | Paths & Hashes charts and classification coverage | After #55 and server #159 is merged and deployed; #56 |
-
-The router foundation [server #155](https://github.com/MeshCore-Beacon/beacon-server/pull/155) is merged. The refresh workflow drops accepted squash parents, preserves focused feature deltas and handles changed branch history in isolated worktrees. See [the executable contributor workflow](CONTRIBUTOR_WORKFLOW.md).
+The local workflow has removed the accepted entries and overlays without rebasing or force-pushing any application branch. Future contributions start directly from fresh `dev`. The unchanged web source tree matches the existing tested preview exactly; preserve its real build identity rather than labeling an older binary as a new build. See [the contributor workflow](CONTRIBUTOR_WORKFLOW.md) and [consolidation checklist](RELEASE-CHECKLIST.md).
 
 ## Delivered foundations
 
@@ -75,18 +66,18 @@ The path page counts stored receptions, not unique devices. Flood paths accumula
 
 The September 20 review correction moves both new aggregate APIs onto materialized hourly snapshots, preserving reception/region semantics and normalizing polling windows to UTC hours. In a rolled-back million-row Pi fixture, Signal request queries took 1.8–77.5 ms and Paths 3.5–141.9 ms across custom/generic plans. Initial population took 14.4/8.4 seconds, refresh 16.8/6.2 seconds, and view/index storage was 6.5/11.3 MB respectively. These measurements cover the fixture, not the full production workload. See the [release consolidation checklist](RELEASE-CHECKLIST.md) for remaining gates.
 
-The current combined preview has passed native Go/PostgreSQL/HTTP validation and **786 web tests**. Private backup checks cover version compatibility, feature-only startup failure, TLS/password files, cancellation and schema/data/sequence restoration. The review update passed 390/1280px browser checks, with ten distinct glyphs and explicit complete-hour text; earlier chart validation also covered 320/768px. Public Signal/Paths counts reconcile with SQL, both MQTT feeds advance and the browser reports LIVE. Current revisions and corresponding-source archives are on the preview's changelog page.
+September 20 validation covered native Go/PostgreSQL/HTTP behavior and **786 web tests**, plus private backup compatibility, feature-only startup failure, TLS/password files, cancellation and schema/data/sequence restoration. That review update passed 390/1280px browser checks, with ten distinct glyphs and complete-hour text; earlier chart checks also covered 320/768px. This is historical evidence for the unchanged feature code. Current revisions and corresponding-source archives are on the preview's changelog page.
 
-The current Pi build is server `5848d200` with unchanged web `42ba5fcb`. It composes #161 with the reviewed server stack; no existing PR branch was rewritten. Both MQTT feeds advance, schema/config remain unchanged and the other 20 containers were preserved. Packet-reference reads took 4.39–22.83 ms at the origin. The map correction and separate backup-verifier tool remain included. Current/rollback source and binaries are retained; only verified inactive staging was retired.
+The Pi runs accepted server `c02317a4` with actual web build `42ba5fcb`, whose tree exactly equals accepted web `0f0a6ca5`. The server passed native Go build/format/vet/tests, with 1,194 passing test/subtest results and real PostgreSQL analytics, packet and migration checks. Two opt-in backup export/download integration suites were skipped; prior private restore/TLS evidence is separately dated. Both feeds advance, live Signal/Paths counts reconcile with SQL, public source/asset hashes match, and browser charts/map show LIVE without captured warnings/errors. The other 22 service containers were preserved. Immediate rollback is server `5848d200` with the same frontend; the separate tested archive verifier remains installed. Only three retained complete hours are populated, so 7/30-day selections do not establish durable history or production capacity.
 
 ## Next phases
 
 The September 20 #116 investigation has a new [current-build result](https://github.com/MeshCore-Beacon/beacon-server/issues/116#issuecomment-5753626821): a 600-second unmodified Pi capture kept both feeds connected and retained 2,169 new observations, with no ping timeout, disconnect, deadline, SQLSTATE error or HTTP 5xx response. App/PostgreSQL CPU averaged 2.14%/3.96% of one core. The preceding 3h39 log likewise has no MQTT loss or deadline error. Timestamp warnings were classified separately. This did not measure callback or pool-acquisition duration and does not establish the original cause or production capacity. No application, ordering, acknowledgement or service change was made; #116 remains open. Further capture should follow a recurrence or meaningful workload change, rather than repeatedly sampling the same healthy state.
 
-1. **Finish the current queue and prepare a consolidation release.** Address all four server reviews and the analytics icon regression [web #58](https://github.com/MeshCore-Beacon/beacon-web/issues/58). Validate the combined candidate on the Pi, retain backend-before-frontend deployment order, then hand reviewed `dev` candidates to maintainers for the server/web main releases. Follow [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md). Pause new analytics until this breakpoint; this release does not claim complete CoreScope parity.
+1. **Publish the coordinated consolidation releases.** Accepted-dev native/Pi/public validation and the changelog/source handoff are complete. Maintainers choose versions, create signed release commits/tags, promote main and verify release artifacts. Follow [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md). Pause new analytics until this breakpoint; this release does not claim complete CoreScope parity.
 2. **After the consolidation release: Channel Activity analytics.** Inspect existing aggregates and add bounded channel traffic/trend views. Define messages versus receptions, unknown/encrypted-channel coverage and the behavior when keys are unavailable. Keep keys and message contents out of aggregate responses; avoid raw-message paging to build statistics.
 3. **Observed ambiguity and topology.** Separate static prefix conflicts from observed unresolved/ambiguous paths. Add justified route-pattern, neighbour, hop and distance views with clear provenance and bounded work.
-4. **Administration and backup slices.** Non-destructive archive validation is ready in independent #160. Resolve browser login/session and restore authorization before an import endpoint; keep deployment-file coverage and remote/scheduled backup separate. Test restoration against disposable databases. These follow-ups do not delay the current release.
+4. **Administration and backup slices.** Non-destructive archive validation is merged in #160. Resolve browser login/session and restore authorization before an import endpoint; keep deployment-file coverage and remote/scheduled backup separate. Test restoration against disposable databases. These follow-ups do not delay the current release.
 5. **Production evidence and handoff.** Reconcile history, operational limits and the parity matrix below before preparing a release/cutover handoff.
 
 ## Listed work still open
@@ -94,14 +85,12 @@ The September 20 #116 investigation has a new [current-build result](https://git
 | Issue | Remaining scope |
 |---|---|
 | [Server #116](https://github.com/MeshCore-Beacon/beacon-server/issues/116) | No recurrence in the September 20 retained log / ten-minute capture; still needs an attributable event with callback/pool timing |
-| [Server #99](https://github.com/MeshCore-Beacon/beacon-server/issues/99) | Advert names are accepted; ACK/TRACE/PING references in #161 await review; define any remaining packet-type formats |
+| [Server #99](https://github.com/MeshCore-Beacon/beacon-server/issues/99) | Advert names and ACK/TRACE/PING references are accepted; define any remaining packet-type formats |
 | [Server #60](https://github.com/MeshCore-Beacon/beacon-server/issues/60) | Remaining administration/worker/persistence behavior; account records do not establish login sessions |
-| [Server #72](https://github.com/MeshCore-Beacon/beacon-server/issues/72) | Archive validation #160 awaits review; import, browser access, deployment-file coverage and remote/scheduled backup remain |
+| [Server #72](https://github.com/MeshCore-Beacon/beacon-server/issues/72) | Download #154 and archive validation #160 are accepted; import, browser access, deployment-file coverage and remote/scheduled backup remain |
 | [Web #12](https://github.com/MeshCore-Beacon/beacon-web/issues/12) | Supported-language and formatting scope for internationalization |
-| [Web #60](https://github.com/MeshCore-Beacon/beacon-web/issues/60) | Map location-reset correction #61 is deployed and awaiting merge |
-| [Web #58](https://github.com/MeshCore-Beacon/beacon-web/issues/58) | Distinct analytics navigation icons, including pending RF/Signal and Paths pages |
 
-The analytics endpoint/page issues remain open while their corresponding PRs await merge. Use closing references only when a PR completes the issue's accepted scope; use related references for partial work.
+The six completed analytics/icon/map issues are closed. Refresh the five remaining issues first at every continuation; accepted partial contributions are not grounds to close broader issues. Use closing references only when a PR completes the issue's accepted scope; use related references for partial work.
 
 ## Production parity matrix
 
