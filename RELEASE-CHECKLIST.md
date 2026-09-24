@@ -36,7 +36,7 @@ The stated replacement direction is lz4 compression, batched deletes, per-table 
 
 A consolidation release must document its actual retention behavior and capacity limits. A future production parity cutover also needs verified durable history coverage and recovery copies. Do not infer either from example configuration or the Pi's short history.
 
-The live preview now additionally includes independent language-support PR #62 at web `b8d4dbf8`. The tested accepted frontend `42ba5fcb` (tree-equivalent to accepted `0f0a6ca5`) remains the immediate rollback. The release freeze below still describes the accepted batch; including #62 requires a separate maintainer decision. Its native 799-test/public browser evidence is recorded in the roadmap.
+The live preview now additionally includes independent language-support PR #62 at web `1c77f200`, including the header-dropdown review correction. The prior language build `b8d4dbf8` is the immediate rollback; accepted frontend `42ba5fcb` (tree-equivalent to accepted `0f0a6ca5`) is also retained. The release freeze below still describes the accepted batch; including #62 requires a separate maintainer decision. Its native 802-test/public browser evidence is recorded in the roadmap.
 
 ## Accepted-dev verification - 24 September
 
@@ -58,7 +58,7 @@ The live preview now additionally includes independent language-support PR #62 a
 - [x] Real preview analytics reconcile with SQL for the materialized window. Browser charts, complete-hour text, small screens and error/empty/retry states are verified. Both MQTT feeds advance and the public browser reports LIVE.
 - [x] Current and rollback server/web artifacts, exact source offers and visible changelog match the running pair. Only the Beacon app restarted; the other 20 containers were preserved. Additive rollup migrations retain observations and are compatible with the previous binary.
 
-The current immediate rollback restores frontend `42ba5fcb` with server `c02317a4`. Restore that frontend before using the older consolidation server rollback to `5848d200`; its metadata describes the accepted frontend. The September 20 packet-reference rollback to `6be0f762` is an older recovery point. Exact artifacts/runners are retained; application rollback keeps additive rollup views and does not remove history.
+The current immediate rollback restores frontend `b8d4dbf8` with server `c02317a4`. Restore accepted frontend `42ba5fcb` before using the older consolidation server rollback to `5848d200`; its metadata describes the accepted frontend. The September 20 packet-reference rollback to `6be0f762` is an older recovery point. Exact artifacts/runners are retained; application rollback keeps additive rollup views and does not remove history.
 
 ## Maintainer release handoff
 
