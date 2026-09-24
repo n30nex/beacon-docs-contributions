@@ -25,7 +25,7 @@ Current sites:
 
 ## Accepted consolidation batch
 
-All ten server/web contributions merged into `dev` on 24 September UTC. There are no open application PRs or remaining application rebase dependencies. [Docs #5](https://github.com/MeshCore-Beacon/beacon-docs/pull/5) is the only open contribution PR.
+All ten server/web contributions merged into `dev` on 24 September UTC. The accepted batch has no remaining rebase dependencies. Independent [web #62](https://github.com/MeshCore-Beacon/beacon-web/pull/62) now addresses language-support issue #12; [docs #5](https://github.com/MeshCore-Beacon/beacon-docs/pull/5) also remains open.
 
 Accepted server is `c02317a4ac7228d19cab498edfa1d61186c84626`; accepted web is `0f0a6ca51c7b2c3315db77954f61b30bbdeea5e2`. CI and image builds pass at these heads; web CodeQL remains skipped and is not a security scan. Stable releases are still server **v1.6.0** and web **v1.3.0**. Merged dev is not a published stable release.
 
@@ -44,7 +44,15 @@ Accepted server is `c02317a4ac7228d19cab498edfa1d61186c84626`; accepted web is `
 
 Server #156/#158 and web #54/#56/#58/#60 are closed. Server #60/#72/#99/#116 and web #12 remain open: the accepted work completes slices, not their remaining scope. Archive verification establishes structure and integrity, not authenticity, SQL safety or restorability. Packet-carried ACK/TRACE/PING references are not identity or delivery guarantees.
 
-The local workflow has removed the accepted entries and overlays without rebasing or force-pushing any application branch. Future contributions start directly from fresh `dev`. The unchanged web source tree matches the existing tested preview exactly; preserve its real build identity rather than labeling an older binary as a new build. See [the contributor workflow](CONTRIBUTOR_WORKFLOW.md) and [consolidation checklist](RELEASE-CHECKLIST.md).
+The workflow removed the accepted entries and overlays without rebasing or force-pushing any application branch. The language foundation started directly from fresh `dev` and is the sole active web entry. Overlapping follow-ups use its declared parent through the helper. The unchanged web source tree matches the existing tested preview exactly; preserve its real build identity rather than labeling an older binary as a new build. See [the contributor workflow](CONTRIBUTOR_WORKFLOW.md) and [consolidation checklist](RELEASE-CHECKLIST.md).
+
+## Current independent issue work
+
+[Web #62](https://github.com/MeshCore-Beacon/beacon-web/pull/62), `b8d4dbf80627411e17875f9a1e11b220db94ffe7`, is the first slice of [language support #12](https://github.com/MeshCore-Beacon/beacon-web/issues/12). English remains the default; French covers navigation, region/theme controls, connection status and lazy-page loading. A native language picker saves the browser choice. Bundled catalogs are discovered automatically and missing/empty translations fall back to English. Contributor guidance accompanies the feature.
+
+The exact candidate passes build/lint and all 799 tests on Windows and the Pi. Public browser checks show French stays LIVE, survives reloads, preserves canonical links and fits a 320px viewport. Source/asset hashes match; the initial JS adds about 16.1 KiB gzip. All 23 service containers and the accepted server were preserved; no application rebase was needed. CI passes; web CodeQL remains skipped. Detailed pages, chart/dialog text and localized number/time formatting remain follow-ups, so #12 stays open. Physical Safari remains unverified.
+
+This independent PR does not expand the frozen consolidation release. The Pi runs server `c02317a4` / web `b8d4dbf8`; immediate frontend rollback is tested `42ba5fcb`, identical in source to accepted web `0f0a6ca5`. The [preview changelog/source](https://canadaverse.org/beacon-dev/source.html) identifies both the accepted batch and the additional language candidate.
 
 ## Delivered foundations
 
@@ -68,17 +76,18 @@ The September 20 review correction moves both new aggregate APIs onto materializ
 
 September 20 validation covered native Go/PostgreSQL/HTTP behavior and **786 web tests**, plus private backup compatibility, feature-only startup failure, TLS/password files, cancellation and schema/data/sequence restoration. That review update passed 390/1280px browser checks, with ten distinct glyphs and complete-hour text; earlier chart checks also covered 320/768px. This is historical evidence for the unchanged feature code. Current revisions and corresponding-source archives are on the preview's changelog page.
 
-The Pi runs accepted server `c02317a4` with actual web build `42ba5fcb`, whose tree exactly equals accepted web `0f0a6ca5`. The server passed native Go build/format/vet/tests, with 1,194 passing test/subtest results and real PostgreSQL analytics, packet and migration checks. Two opt-in backup export/download integration suites were skipped; prior private restore/TLS evidence is separately dated. Both feeds advance, live Signal/Paths counts reconcile with SQL, public source/asset hashes match, and browser charts/map show LIVE without captured warnings/errors. The other 22 service containers were preserved. Immediate rollback is server `5848d200` with the same frontend; the separate tested archive verifier remains installed. Only three retained complete hours are populated, so 7/30-day selections do not establish durable history or production capacity.
+The September 24 consolidation check built accepted server `c02317a4` and retained web `42ba5fcb`, identical in source to accepted `0f0a6ca5`. Its native PostgreSQL and public/browser evidence remains in the release checklist. The current Pi frontend additionally includes #62 as documented above; the accepted frontend is retained for rollback. The three-hour retained analytics sample does not establish 7/30-day history or production capacity.
 
 ## Next phases
 
 The September 20 #116 investigation has a new [current-build result](https://github.com/MeshCore-Beacon/beacon-server/issues/116#issuecomment-5753626821): a 600-second unmodified Pi capture kept both feeds connected and retained 2,169 new observations, with no ping timeout, disconnect, deadline, SQLSTATE error or HTTP 5xx response. App/PostgreSQL CPU averaged 2.14%/3.96% of one core. The preceding 3h39 log likewise has no MQTT loss or deadline error. Timestamp warnings were classified separately. This did not measure callback or pool-acquisition duration and does not establish the original cause or production capacity. No application, ordering, acknowledgement or service change was made; #116 remains open. Further capture should follow a recurrence or meaningful workload change, rather than repeatedly sampling the same healthy state.
 
 1. **Publish the coordinated consolidation releases.** Accepted-dev native/Pi/public validation and the changelog/source handoff are complete. Maintainers choose versions, create signed release commits/tags, promote main and verify release artifacts. Follow [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md). Pause new analytics until this breakpoint; this release does not claim complete CoreScope parity.
-2. **After the consolidation release: Channel Activity analytics.** Inspect existing aggregates and add bounded channel traffic/trend views. Define messages versus receptions, unknown/encrypted-channel coverage and the behavior when keys are unavailable. Keep keys and message contents out of aggregate responses; avoid raw-message paging to build statistics.
-3. **Observed ambiguity and topology.** Separate static prefix conflicts from observed unresolved/ambiguous paths. Add justified route-pattern, neighbour, hop and distance views with clear provenance and bounded work.
-4. **Administration and backup slices.** Non-destructive archive validation is merged in #160. Resolve browser login/session and restore authorization before an import endpoint; keep deployment-file coverage and remote/scheduled backup separate. Test restoration against disposable databases. These follow-ups do not delay the current release.
-5. **Production evidence and handoff.** Reconcile history, operational limits and the parity matrix below before preparing a release/cutover handoff.
+2. **Continue listed issue #12 in small screen groups.** The English/French foundation is ready in #62. Translate remaining page, chart and dialog text while preserving identifiers and measurement semantics; keep partial coverage explicit. Refresh all open issues/reviews before choosing the next group.
+3. **After the consolidation release: Channel Activity analytics.** Inspect existing aggregates and add bounded channel traffic/trend views. Define messages versus receptions, unknown/encrypted-channel coverage and the behavior when keys are unavailable. Keep keys and message contents out of aggregate responses; avoid raw-message paging to build statistics.
+4. **Observed ambiguity and topology.** Separate static prefix conflicts from observed unresolved/ambiguous paths. Add justified route-pattern, neighbour, hop and distance views with clear provenance and bounded work.
+5. **Administration and backup slices.** Non-destructive archive validation is merged in #160. Resolve browser login/session and restore authorization before an import endpoint; keep deployment-file coverage and remote/scheduled backup separate. Test restoration against disposable databases. These follow-ups do not delay the current release.
+6. **Production evidence and handoff.** Reconcile history, operational limits and the parity matrix below before preparing a release/cutover handoff.
 
 ## Listed work still open
 
@@ -88,7 +97,7 @@ The September 20 #116 investigation has a new [current-build result](https://git
 | [Server #99](https://github.com/MeshCore-Beacon/beacon-server/issues/99) | Advert names and ACK/TRACE/PING references are accepted; define any remaining packet-type formats |
 | [Server #60](https://github.com/MeshCore-Beacon/beacon-server/issues/60) | Remaining administration/worker/persistence behavior; account records do not establish login sessions |
 | [Server #72](https://github.com/MeshCore-Beacon/beacon-server/issues/72) | Download #154 and archive validation #160 are accepted; import, browser access, deployment-file coverage and remote/scheduled backup remain |
-| [Web #12](https://github.com/MeshCore-Beacon/beacon-web/issues/12) | Supported-language and formatting scope for internationalization |
+| [Web #12](https://github.com/MeshCore-Beacon/beacon-web/issues/12) | English/French navigation foundation #62 is in review; detailed screens, chart/dialog text and formatting remain |
 
 The six completed analytics/icon/map issues are closed. Refresh the five remaining issues first at every continuation; accepted partial contributions are not grounds to close broader issues. Use closing references only when a PR completes the issue's accepted scope; use related references for partial work.
 
