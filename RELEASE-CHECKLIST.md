@@ -26,7 +26,7 @@ The web source tree is identical to tested preview `42ba5fcb`; preserve that art
 - [x] Refresh #55/#57 after the accepted #52/#53 squash. Their source trees were identical after the September 20 refresh; that history-only update needs no replacement Pi artifact.
 - [x] All eight application PRs pass their required checks on the published heads. Native PostgreSQL tests ran. The upstream web CodeQL job remains skipped under its existing policy and is not counted as a scan.
 
-All six server PRs and four web PRs have merged. Server #156/#158 and web #54/#56/#58/#60 are closed. Docs #5 remains open; language foundation #62 has since merged, and translations #63/#64/#65/#66/#69/#70 and independent bug fix #68 remain outside this original frozen batch. The helper retired accepted parents/overlays without rebasing or force-pushing any application branch. Future work starts from freshly fetched dev. Backend endpoints still need deployment before dependent pages on each operator's target; Pi evidence is not evidence of another deployment.
+All six server PRs and four web PRs have merged. Server #156/#158 and web #54/#56/#58/#60 are closed. Docs #5 remains open; language foundation #62 has since merged, and translations #63/#64/#65/#66/#69/#70 and independent bug fixes #68/#72 remain outside this original frozen batch. The helper retired accepted parents/overlays without rebasing or force-pushing any application branch. Future work starts from freshly fetched dev. Backend endpoints still need deployment before dependent pages on each operator's target; Pi evidence is not evidence of another deployment.
 
 ## Storage and retention boundary
 
@@ -36,7 +36,7 @@ The stated replacement direction is lz4 compression, batched deletes, per-table 
 
 A consolidation release must document its actual retention behavior and capacity limits. A future production parity cutover also needs verified durable history coverage and recovery copies. Do not infer either from example configuration or the Pi's short history.
 
-Language foundation #62 has since merged as accepted web dev `6d3edbb6`, source-equivalent to tested build `1c77f200`. The live preview combines translation #70 (following #63–#66/#69) with independent #68 at `300ee974`: native Pi build/lint and 860 tests pass, with public/browser/source checks. The Timestamp PR source passes 854 Windows tests/CI; independent #68 retains its 808-test evidence and can merge first to close #67. Immediate frontend rollback is combined `8fb636aa`. Direct per-page time phrases and broader formatting remain follow-ups; the real scope dataset is empty. The original release freeze below remains separately recorded; maintainers choose whether to advance it to include these later contributions.
+Language foundation #62 has since merged as accepted web dev `6d3edbb6`, source-equivalent to tested build `1c77f200`. The live preview combines translations through #70 with independent #68/#72 at `9d96b943`: native Pi build/lint and 867 tests pass, with public/browser/source checks. Independent Mesh #72 passes 809 Windows tests/CI and Talkers #68 retains its 808-test evidence; either can merge first to close #71/#67. Immediate frontend rollback is combined `300ee974`. The real scope dataset is empty; physical Safari remains untested. The original release freeze stays separate; maintainers choose whether to advance it to these later contributions.
 
 ## Accepted-dev verification - 24 September
 
@@ -45,7 +45,7 @@ Language foundation #62 has since merged as accepted web dev `6d3edbb6`, source-
 - [x] Accepted server is running on the preview. Source/asset hashes match; both feeds advance. Signal/Paths reconcile with SQL for global/regional 1/7/30-day selections, at 2-19 ms origin latency. Only three complete hours are populated; this does not prove 7/30-day history coverage.
 - [x] Browser Signal/Paths charts and map load with LIVE status and no captured warnings/errors. Unchanged frontend assets keep their actual `42ba5fcb` build/source identity and prior 786-test evidence; accepted `0f0a6ca5` has the identical tree.
 - [x] Only the Beacon app restarted; the other 22 containers and configuration/migration journal were preserved. Immediate rollback is server `5848d200` with unchanged web. The separate verifier retains its real `262eae96` binary/source identity.
-- [x] Accepted review queues/overlays were retired. Start created the independent language branch directly from accepted dev; #63 followed by #64, #65, #66, #69 and #70 is the translation queue, with #68 independently included in preview checks. Completed issues are closed; five broader issues and focused #67 remain open.
+- [x] Accepted review queues/overlays were retired. Start created the independent language branch directly from accepted dev; #63 followed by #64, #65, #66, #69 and #70 is the translation queue, with #68/#72 independently included in preview checks. Completed issues are closed; five broader issues and focused #67/#71 remain open.
 - [ ] Maintainer version selection, signed release commits, main promotion, tags and tag-built artifact verification. Stable releases remain v1.6.0 / v1.3.0.
 
 ## Earlier combined-candidate evidence - 20 September
@@ -58,7 +58,7 @@ Language foundation #62 has since merged as accepted web dev `6d3edbb6`, source-
 - [x] Real preview analytics reconcile with SQL for the materialized window. Browser charts, complete-hour text, small screens and error/empty/retry states are verified. Both MQTT feeds advance and the public browser reports LIVE.
 - [x] Current and rollback server/web artifacts, exact source offers and visible changelog match the running pair. Only the Beacon app restarted; the other 20 containers were preserved. Additive rollup migrations retain observations and are compatible with the previous binary.
 
-The current immediate rollback restores combined frontend `8fb636aa` with server `c02317a4`. Restore accepted frontend `42ba5fcb` before using the older consolidation server rollback to `5848d200`; its metadata describes the accepted frontend. The September 20 packet-reference rollback to `6be0f762` is an older recovery point. Exact artifacts/runners are retained; application rollback keeps additive rollup views and does not remove history.
+The current immediate rollback restores combined frontend `300ee974` with server `c02317a4`. Restore accepted frontend `42ba5fcb` before using the older consolidation server rollback to `5848d200`; its metadata describes the accepted frontend. The September 20 packet-reference rollback to `6be0f762` is an older recovery point. Exact artifacts/runners are retained; application rollback keeps additive rollup views and does not remove history.
 
 ## Maintainer release handoff
 
@@ -66,4 +66,4 @@ The current immediate rollback restores combined frontend `8fb636aa` with server
 2. Deploy the accepted server before dependent pages and verify both endpoints on the intended deployment. The Pi is a development validation target; production cutover remains with the owner.
 3. Follow the server contribution guide for a signed version/Swagger commit, dev-to-main fast-forward, tag and release CI. Web main has the prior release squash `5ac36ce` outside dev ancestry; reconcile that stable history before promotion. Do not overwrite main.
 4. Verify the tag's Actions-built artifacts and matching source. Publish accurate notes, upgrade/retention guidance, known gaps and rollback instructions. Versions/tags have not been chosen by this contribution.
-5. Review the five remaining issues first when resuming development: server #60/#72/#99/#116 and web #12. These broad/partial issues remain open. After the consolidation release, Channel Activity is the next analytics page; this milestone does not establish full CoreScope parity.
+5. Review the seven open issues first when resuming development: server #60/#72/#99/#116 and web #12/#67/#71. Independent web #68/#72 close the two focused bugs on acceptance; the other issues remain partial. After the consolidation release, Channel Activity is the next analytics page; this milestone does not establish full CoreScope parity.
