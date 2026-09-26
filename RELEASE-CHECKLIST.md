@@ -26,17 +26,17 @@ The web source tree is identical to tested preview `42ba5fcb`; preserve that art
 - [x] Refresh #55/#57 after the accepted #52/#53 squash. Their source trees were identical after the September 20 refresh; that history-only update needs no replacement Pi artifact.
 - [x] All eight application PRs pass their required checks on the published heads. Native PostgreSQL tests ran. The upstream web CodeQL job remains skipped under its existing policy and is not counted as a scan.
 
-All six server PRs and four web PRs have merged. Server #156/#158 and web #54/#56/#58/#60 are closed. Docs #5 remains open; language foundation #62 has since merged, and translations #63/#64/#65/#66/#69/#70 and independent bug fixes #68/#72 remain outside this original frozen batch. The helper retired accepted parents/overlays without rebasing or force-pushing any application branch. Future work starts from freshly fetched dev. Backend endpoints still need deployment before dependent pages on each operator's target; Pi evidence is not evidence of another deployment.
+All original six server and four web PRs are merged. The September 25 translation batch is accepted through web #70, with #63/#64/#65/#66/#69 closed as included; #68/#72 also merged and #67/#71 are closed. New server #162/#163 and web #73 are accepted. Only docs #5 remains open. Active application manifests are empty, acceptance history remains, and no application branch was rewritten.
 
 ## Storage and retention boundary
 
 The September 17 drop-and-reset observation-partitioning design and implementation plan were explicitly superseded on September 19. They are historical reference only. Do not implement their table drop, history reset or process-local dedup replacement.
 
-The stated replacement direction is lz4 compression, batched deletes, per-table autovacuum tuning and a seven-day default. Those changes are not present in the verified published server dev c02317a4 (its example still says 30 days). Obtain and review the replacement contribution before describing it as shipped. Coordinate append-only migration numbers with that work; the old plan's proposed 035 is not evidence that a migration exists.
+Accepted server #162 now supplies batched retention deletes, per-table autovacuum tuning in migration 037 and a seven-day default packet/chat retention when unset. #163 adds migration 038, dropping per-observation endpoint snapshots and resolving against current nodes at read time. The earlier partition/reset proposal remains superseded. Compression changes were not added by these two migrations.
 
 A consolidation release must document its actual retention behavior and capacity limits. A future production parity cutover also needs verified durable history coverage and recovery copies. Do not infer either from example configuration or the Pi's short history.
 
-Language foundation #62 has since merged as accepted web dev `6d3edbb6`, source-equivalent to tested build `1c77f200`. The live preview combines translations through #70 with independent #68/#72 at `9d96b943`: native Pi build/lint and 867 tests pass, with public/browser/source checks. Independent Mesh #72 passes 809 Windows tests/CI and Talkers #68 retains its 808-test evidence; either can merge first to close #71/#67. Immediate frontend rollback is combined `300ee974`. The real scope dataset is empty; physical Safari remains untested. The original release freeze stays separate; maintainers choose whether to advance it to these later contributions.
+Current dev is server `91b4b457` / web `54b5093a`, with passing CI/image builds (server coverage/CodeQL pass; web CodeQL skipped). The Pi still runs server `c02317a4` / web `9d96b943`, equivalent to web source accepted through #72, with prior 867-test native evidence. It lacks server #162/#163 and web #73. The current frontend rollback is `300ee974`. No new deployment/migration occurred in the September 26 audit. Before upgrading, verify a database recovery checkpoint and explicit retention policy: old server queries reference the column removed by 038, so restoring only the old binary afterward is not a valid rollback.
 
 ## Accepted-dev verification - 24 September
 
@@ -45,8 +45,7 @@ Language foundation #62 has since merged as accepted web dev `6d3edbb6`, source-
 - [x] Accepted server is running on the preview. Source/asset hashes match; both feeds advance. Signal/Paths reconcile with SQL for global/regional 1/7/30-day selections, at 2-19 ms origin latency. Only three complete hours are populated; this does not prove 7/30-day history coverage.
 - [x] Browser Signal/Paths charts and map load with LIVE status and no captured warnings/errors. Unchanged frontend assets keep their actual `42ba5fcb` build/source identity and prior 786-test evidence; accepted `0f0a6ca5` has the identical tree.
 - [x] Only the Beacon app restarted; the other 22 containers and configuration/migration journal were preserved. Immediate rollback is server `5848d200` with unchanged web. The separate verifier retains its real `262eae96` binary/source identity.
-- [x] Accepted review queues/overlays were retired. Start created the independent language branch directly from accepted dev; #63 followed by #64, #65, #66, #69 and #70 is the translation queue, with #68/#72 independently included in preview checks. Completed issues are closed; five broader issues and focused #67/#71 remain open.
-- [ ] Maintainer version selection, signed release commits, main promotion, tags and tag-built artifact verification. Stable releases remain v1.6.0 / v1.3.0.
+- [x] Accepted review queues/overlays were retired, including the translation ancestors verified as included in #70. All application PRs are accepted. Only docs #5 and the five broader issues remain open.
 
 ## Earlier combined-candidate evidence - 20 September
 
@@ -62,8 +61,8 @@ The current immediate rollback restores combined frontend `300ee974` with server
 
 ## Maintainer release handoff
 
-1. The application review queue is accepted. Freeze server `c02317a4` / web `0f0a6ca5`, or explicitly record any newer accepted changes before release. Confirm required checks on those exact heads.
-2. Deploy the accepted server before dependent pages and verify both endpoints on the intended deployment. The Pi is a development validation target; production cutover remains with the owner.
+1. The application review queue is accepted. Current dev is server `91b4b457` / web `54b5093a`; choose an explicit release freeze and confirm its exact checks. The older `c02317a4` / `0f0a6ca5` proof does not validate newer schema changes.
+2. Validate migration 038 and database restore/rollback on the Pi before deployment; preserve the chosen retention policy. Deploy the accepted server before dependent pages and verify both endpoints on the intended deployment. The Pi is a development validation target; production cutover remains with the owner.
 3. Follow the server contribution guide for a signed version/Swagger commit, dev-to-main fast-forward, tag and release CI. Web main has the prior release squash `5ac36ce` outside dev ancestry; reconcile that stable history before promotion. Do not overwrite main.
 4. Verify the tag's Actions-built artifacts and matching source. Publish accurate notes, upgrade/retention guidance, known gaps and rollback instructions. Versions/tags have not been chosen by this contribution.
-5. Review the seven open issues first when resuming development: server #60/#72/#99/#116 and web #12/#67/#71. Independent web #68/#72 close the two focused bugs on acceptance; the other issues remain partial. After the consolidation release, Channel Activity is the next analytics page; this milestone does not establish full CoreScope parity.
+5. Review the five open issues first when resuming development: server #60/#72/#99/#116 and web #12. Web #67/#71 are closed; broader issues remain partial. After the consolidation release, Channel Activity is the next analytics page; this milestone does not establish full CoreScope parity.
