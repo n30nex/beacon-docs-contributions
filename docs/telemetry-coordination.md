@@ -5,6 +5,22 @@ of one Beacon intake. Basic Atlas and Topology do not require it. It is not a
 worldwide RF lock: independent instances, older clients and modified radios do
 not share the same authority. Key possession is not hardware attestation.
 
+## Relationship to upstream polling
+
+Upstream now provides [repeater polling](repeater-polling.md) and
+[account telemetry requests](telemetry-requests.md) for participating observer,
+firmware and MQTT clients. That protocol does not require a separate Beacon agent
+service. Its broker claims/readings and `/api/guest-polling` routes are distinct
+from the optional companion intake described below.
+
+The BLE/Wi-Fi Flutter collector remains an alternate input, with its signed
+`/api/v1/node-telemetry` requests and 1–72-hour limits. These two coordinators do
+not share reservations: do not assume they prevent duplicate RF work across the
+same repeater. The Canadaverse refresh preserves its working companion intake
+and leaves the new account, alert and firmware-polling settings off until those
+paths are configured and qualified. Firmware/client support is not a claim that
+physical radio collection was tested by a backend upgrade.
+
 ## Client behavior
 
 The Flutter collector uses its existing BLE/Wi-Fi connection, local credentials,
