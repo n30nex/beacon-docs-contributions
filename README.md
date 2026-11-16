@@ -225,3 +225,7 @@ operator-configured feature.
 [Current audit handoff](docs/handoff-20261116.md) identifies the qualified preview, focused dev PRs, recovery boundary and remaining release gates.
 
 [Completed mobile/French/map browser qualification](docs/browser-qualification-20261116.md) covers the five focused follow-up fixes and final deployed verification.
+
+## Audit and parity roadmap
+
+[System audit and CoreScope parity roadmap](docs/system-parity-audit-20261116.md) records source/runtime differences, focused proposals, release classes and acceptance gates.
