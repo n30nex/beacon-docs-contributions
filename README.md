@@ -8,21 +8,8 @@ This repo is where you deploy and operate it. The code lives in
 [beacon-server](https://github.com/MeshCore-Beacon/beacon-server) (the API and ingest) and
 [beacon-web](https://github.com/MeshCore-Beacon/beacon-web) (the frontend).
 
-The [project roadmap and maintainer handoff](docs/project-roadmap.md) maps current
-repositories, issues, PRs and the staged route to live.
-
-The proposed paired backend, basic Atlas and Topology release is described in the
-[core performance candidate](docs/performance-release-candidate.md), including
-validation, operational budgets and remaining release gates.
-The [coordination and shared-reply contract](docs/telemetry-coordination.md) describes polling permits and observer integration.
-
-The separate [optional collection guide](docs/telemetry-collection.md) covers
-mobile/headless clients, intake, sensor cards and their qualification gates.
-
 > **Coming from 1.x?** 2.0.0 needs a fresh database and a few config changes. Read
 > [Upgrading](docs/upgrading.md) before you pull new images.
-
-The [experimental roadmap](docs/post-140-roadmap.md) and [integration guide](docs/post-20-integration.md) track My Atlas, Topology and the separate Collector service. These changes remain on `n30nex-test`; production acceptance and stable releases remain separate.
 
 ## Deploy the all-in-one stack
 
@@ -74,7 +61,6 @@ Set every `CHANGE_*` value. The ones you cannot skip:
 
 | Variable | What to set |
 |---|---|
-| `BEACON_SERVER_IMAGE` / `BEACON_WEB_IMAGE` | Reviewed tags or immutable digests. Keep server/web major and minor versions aligned; patches may differ. |
 | `POSTGRES_DSN` | The database connection string. Change `CHANGE_DB_PASS` to a strong password. **The same password must go in `POSTGRES_PASSWORD` in `docker-compose.yml`.** |
 | `MQTT_BROKER_1_URL`, `_USERNAME`, `_PASSWORD` | Your MeshCore MQTT broker and the subscriber account on it. The template also lists a second broker; if you have only one, clear `MQTT_BROKER_2_URL` (an empty URL disables that worker). |
 | `DOMAIN` | Your public hostname, for example `beacon.example.com`. Caddy requests a Let's Encrypt certificate for it. |
@@ -222,3 +208,14 @@ Security reports go through [SECURITY.md](SECURITY.md), not public channels.
 Beacon is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0), the
 same license as [beacon-server](https://github.com/MeshCore-Beacon/beacon-server) and
 [beacon-web](https://github.com/MeshCore-Beacon/beacon-web).
+
+## Development audit and roadmap
+
+- [End-to-end audit, findings and verification](docs/audit-20261116.md)
+- [Prioritized implementation and release roadmap](docs/roadmap-20261116.md)
+- [Current PR and issue disposition](docs/review-map-20261116.md)
+
+The Canadaverse audit preview follows upstream dev plus audited fixes. Experimental
+Topology, scope extensions and the independent companion collector are separate
+proposals, not part of that running baseline. Native upstream telemetry remains an
+operator-configured feature.

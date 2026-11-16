@@ -19,22 +19,15 @@ Beacon has no health endpoint yet. Use these instead:
 
 ## Logs
 
-Logs go to stderr and Docker collects them. The supplied all-in-one and split deployment
-templates cap each service's Docker logs at three files of about 10 MB each. Their shared
-`bounded-logging` block applies to every service. Adjust that policy for your retention needs:
+Logs go to stderr and Docker collects them. Docker's default `json-file` driver does not
+rotate, so on a long-running host set a cap, either in `/etc/docker/daemon.json` for every
+container or per service in `docker-compose.yml`:
 
 ```yaml
     logging:
       driver: json-file
-      options: { max-size: "10m", max-file: "3" }
+      options: { max-size: "50m", max-file: "5" }
 ```
-
-Docker's default `json-file` driver is unbounded when no rotation options are configured.
-Existing containers do not adopt a changed logging policy on restart: recreate the affected
-services during a planned maintenance window, preserving their data volumes. Inspect the
-effective policy with `docker inspect --format '{{json .HostConfig.LogConfig}}' <container>`.
-Do not remove database volumes to apply a logging change. This policy is separate from
-Caddy's rotated access-log files.
 
 Set `log.level` (`debug`, `info`,
 `warn`, `error`; default `info`) and `log.format` (`text` or `json`) in `config.yaml`, or
@@ -1937,3 +1930,18 @@ harmless.
 ## CPU profiling
 
 Bounded CPU captures on a running instance are described in [Profiling](profiling.md).
+
+## Current development audit
+
+See [the November audit](audit-20261116.md) and [release roadmap](roadmap-20261116.md)
+for source identities, the current fix-only preview policy, known limitations and
+the promotion gates. Historical preview screenshots and version strings alone do
+not identify current code or qualify a production deployment.
+
+## Bounded container logs
+
+The deployment templates rotate each service's Docker `json-file` logs at 10 MB
+per file and retain three files. This does not rotate PostgreSQL data, Caddy access
+files, backups or source archives. An existing container adopts the policy only
+when it is recreated; inspect `HostConfig.LogConfig` before and afterward and keep
+all data-volume mounts unchanged. Do not delete a live container log file by hand.
