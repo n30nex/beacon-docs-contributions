@@ -167,6 +167,7 @@ gone private; see [Troubleshooting](docs/troubleshooting.md#docker-compose-up-fa
 - [Cancellation and animation lifetime fixes](docs/performance-followup-20261116.md): focused audit follow-ups, validation and preview recovery.
 - [Resource lifetime fixes](docs/performance-round2-20261116.md): live subscriptions, boundary requests, graph cancellation and native map demand.
 - [Live updates and background reads](docs/performance-round3-20261116.md): optional message variants, query cancellation and native refresh eligibility.
+- [Live map and Retry-After improvements on the Canadaverse preview](docs/live-map-cooldown-20261117.md).
 
 **Change it**
 
