@@ -2,7 +2,8 @@
 
 However you front Beacon, the proxy has the same three jobs:
 
-- Send `/api/*` and `/ws` to beacon-server (port `8080`) and everything else to beacon-web. `/ws`
+- Send `/api/*`, `/ws` and `/.well-known/beacon-push` to beacon-server (port `8080`) and everything
+  else to beacon-web. The last one is the push server's daily [domain check](alerts.md#push). `/ws`
   is a WebSocket, so the proxy must pass the upgrade through and keep idle sockets open for more
   than 90 seconds (the browser pings every 30 seconds; the server drops a socket after 90 seconds
   of silence).
@@ -28,6 +29,11 @@ handle /api/* {
 	}
 }
 handle /ws {
+	reverse_proxy app:8080 {
+		header_up X-Real-IP {remote_host}
+	}
+}
+handle /.well-known/beacon-push {
 	reverse_proxy app:8080 {
 		header_up X-Real-IP {remote_host}
 	}
@@ -95,6 +101,11 @@ location = /ws {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_read_timeout 120s;
 }
+location = /.well-known/beacon-push {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
 location / {
     proxy_pass http://127.0.0.1:8081;   # beacon-web published on loopback
 }
@@ -110,7 +121,13 @@ ports, the app sees the Docker network's gateway as the peer, so trust the compo
 
 Apache works the same way. [`app_config/apache/analyzer-vhost.snippet.conf`](../app_config/apache/analyzer-vhost.snippet.conf)
 is a working virtual host snippet, including the `RequestHeader set X-Real-IP` line that
-replaces whatever the client sent.
+replaces whatever the client sent. Proxy `/.well-known/beacon-push` to beacon-server next to
+your `/api` and `/ws` rules:
+
+```apache
+ProxyPass        /.well-known/beacon-push http://127.0.0.1:8080/.well-known/beacon-push
+ProxyPassReverse /.well-known/beacon-push http://127.0.0.1:8080/.well-known/beacon-push
+```
 
 ## Rate limits and connection caps
 

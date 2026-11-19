@@ -351,9 +351,9 @@ websocket:
 # prevents startup. Omitted or empty (default) means the built-in floor only.
 # Takes effect on restart.
 #mobile:
-#  min_app_version: "0.1.1"   # BEACON Mobile; built-in floor: none
+#  min_app_version: "2.3.0"   # BEACON Mobile; built-in floor: 2.3.0
 #web:
-#  min_web_version: "2.0.3"   # Beacon Web; built-in floor: 2.0.3
+#  min_web_version: "2.3.0"   # Beacon Web; built-in floor: 2.3.0
 
 # CORS configuration.
 # Controls which origins, methods and headers are allowed for cross-origin requests.
@@ -431,28 +431,44 @@ cache:
 #                              # approve under /api/v1/admin/polling; advert evidence is required in both modes.
 #                              # Set approved if you want to vet observers before they receive guest passwords.
 
+# Outgoing mail: the SMTP server Beacon sends account mail (sign-up, password reset) and email alerts
+# through. Required when accounts.mode is local. The password comes from BEACON_SMTP_PASSWORD, never from here.
+#mail:
+#  host: ""                    # e.g. smtp.example.org
+#  port: 587                   # default: 587
+#  username: ""                # empty means no auth
+#  from: ""                    # e.g. "Beacon <no-reply@example.org>"
+#  starttls: true              # default: true; the send fails if the server lacks STARTTLS
+
 # User accounts: sign-in for the web app and the mobile app. Off by default; with it off
-# no account route is served. The SMTP password comes from BEACON_SMTP_PASSWORD, never from here.
+# no account route is served. Mode local sends mail through the mail block above.
 # A web app on another origin than the API also needs cors.allowed_methods, cors.allowed_headers
 # (with X-Beacon-CSRF) and cors.allow_credentials; same origin needs nothing.
 #accounts:
 #  mode: off                   # off, local or portal
 #  public_url: ""              # https URL of the web app, no path; used in mailed links
 #  registration: open          # open or closed
-#  smtp:
-#    host: ""                  # required when mode is local
-#    port: 587                 # default: 587
-#    username: ""              # empty means no auth
-#    from: ""                  # required, e.g. "Beacon <no-reply@example.org>"
-#    starttls: true            # default: true; the send fails if the server lacks STARTTLS
-#  # mode: portal signs people in through the MeshMapper portal: no SMTP, no registration.
+#  # mode: portal signs people in through the MeshMapper portal: no mail, no registration.
 #  # The client secret comes from BEACON_PORTAL_SECRET, never from here.
 #  portal:
 #    url: ""                   # https base address of the portal; required when mode is portal
 #    client_id: ""             # required when mode is portal
 
-# Alerts: tell users when a radio on their Atlas needs attention. Needs accounts. Off by default.
-# email needs accounts.mode local and SMTP. push needs BEACON_PUSH_CREDENTIALS, the in-container path of a
-# Google service account key file; startup fails without it.
+# Alerts: tell users when a radio on their Atlas needs attention. Needs accounts (local or portal). Off by default.
+# Each user picks which of the channels below reach them.
 #alerts:
-#  delivery: off               # off, push or email
+#  email:
+#    # Send alerts by email. Needs accounts.mode: local and the top-level mail block.
+#    enabled: false
+#  push:
+#    # Send alerts as push notifications to the Beacon app.
+#    enabled: false
+#    # Your Push ID, from registering this server at https://push.meshcorebeacon.ca/register.
+#    # The matching Push secret goes in BEACON_PUSH_SECRET in .env, never here.
+#    # Register with this server's public URL for higher limits (300 a minute, 10,000 a day
+#    # instead of 30 and 500); the proxy must send /.well-known/beacon-push to beacon-server.
+#    id: ""
+#    # The push server. You must use the official MeshCore Beacon push server:
+#    # the Beacon app only receives notifications sent through it. Only change
+#    # this if the project announces a new address.
+#    server: https://push.meshcorebeacon.ca

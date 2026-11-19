@@ -26,8 +26,8 @@ to open).
 | `MESHMAPPER_API_KEY` | unset | Regional or grouped-region key for enabled MeshMapper imports. When set, even to an empty string, it replaces `meshmapper.api_key`. Missing keys leave imports unconfigured while Beacon keeps running. See [MeshMapper API key](#meshmapper-api-key). |
 | `BEACON_SECRET_KEY` | unset | 32 random bytes in base64. Seals the guest passwords of [telemetry requests](telemetry-requests.md). See [BEACON_SECRET_KEY](#beacon_secret_key). |
 | `BEACON_PORTAL_SECRET` | unset | The client secret for sign-in through the MeshMapper portal. Required when `accounts.mode` is `portal`; has no YAML key. See [Sign-in through the MeshMapper portal](portal-sign-in.md). |
-| `BEACON_PUSH_CREDENTIALS` | unset | Path to a Google service account key file for push alerts. Required when `alerts.delivery` is `push`. See [Alerts](alerts.md#push). |
-| `BEACON_SMTP_PASSWORD` | unset | Password for `accounts.smtp.username`. Read only when `accounts.mode` is `local`; it has no YAML key. See [User accounts](#user-accounts). |
+| `BEACON_PUSH_SECRET` | unset | The Push secret from registering the server with the push server. Required when `alerts.push.enabled` is true; has no YAML key. See [Alerts](alerts.md#push). |
+| `BEACON_SMTP_PASSWORD` | unset | Password for `mail.username`. Read only when `accounts.mode` is `local`; it has no YAML key. See [User accounts](#user-accounts). |
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. Overrides `log.level`. Anything else stops startup. |
 | `LOG_FORMAT` | `text` | `text` or `json`. Overrides `log.format`. Anything else stops startup. |
 | `BEACON_CPU_PROFILE_DIR`, `BEACON_CPU_PROFILE_UNTIL` | unset | Enable a bounded CPU capture in production. See [Profiling](profiling.md). |
@@ -46,7 +46,7 @@ Visitors get the new values on their next page load. Any characters are fine in 
 | `VITE_MAP_CENTER`, `VITE_MAP_ZOOM` | no | Fallback map view as decimal `lat,lon` and a zoom from 0 to 22, used before airports load or when the selected region has no location. Unset is a world view. |
 | `VITE_DISABLED_TABS` | no | Comma-separated tabs to hide. Options: `Packets,Channels,Map,Nodes,Observers,Routes,Traces,Analytics,Atlas`. |
 | `VITE_ENABLED_THEMES` | no | Comma-separated theme ids. When set, only these themes are offered. Listing `meshmapper_dark` or `meshmapper_light` is the only way to enable those two. |
-| `VITE_APP_NAME` | no | Wordmark text in the top left. Default `BEACON`. The server also reads it as the instance name in the mail it sends: the sender name (when `accounts.smtp.from` is a bare address), the subjects and the bodies. Unset, blank or `BEACON` in any case reads as `Beacon` in mail; other values are used as written, with control characters removed, spaces collapsed and the length capped at 60 characters. The server container must receive the variable too, which it does when it shares the web container's `.env`. |
+| `VITE_APP_NAME` | no | Wordmark text in the top left. Default `BEACON`. The server also reads it as the instance name in the mail it sends: the sender name (when `mail.from` is a bare address), the subjects and the bodies. Unset, blank or `BEACON` in any case reads as `Beacon` in mail; other values are used as written, with control characters removed, spaces collapsed and the length capped at 60 characters. The server container must receive the variable too, which it does when it shares the web container's `.env`. |
 | `VITE_SKIP_SPLASH` | no | `true` skips the once-per-session loading splash. |
 | `VITE_BANNER` | no | Notice shown above the header on every page, for example on a test instance. `[label](url)` and bare URLs become links. |
 
@@ -57,7 +57,7 @@ These are read by `docker-compose.yml` and Caddy, not by Beacon itself.
 | Variable | Used by | What it does |
 |---|---|---|
 | `DOMAIN` | Caddy, both deployments | The public hostname Caddy serves and requests a certificate for. |
-| `WEB_DOMAIN` | Caddy, type 2 server host only | The web frontend's hostname. Anything that is not `/api/*` or `/ws` is redirected there. |
+| `WEB_DOMAIN` | Caddy, type 2 server host only | The web frontend's hostname. Anything that is not `/api/*`, `/ws` or `/.well-known/beacon-push` is redirected there. |
 | `BEACON_WEB_IMAGE` | type 2 web host | The image to run, for example `ghcr.io/meshcore-beacon/beacon-web:2.0`. Keep its `X.Y` equal to the server's. |
 | `POSTGRES_PASSWORD` | the `db` service | Set in `docker-compose.yml`, not `.env`. It must match the password inside `POSTGRES_DSN`. |
 
@@ -84,8 +84,9 @@ which ones to read.
 | `scopes` | Transport scope names for matching `TRANSPORT_FLOOD` packets. Each needs a `region`. | Your mesh uses transport scopes. |
 | `telemetry` | How long observer telemetry snapshots are kept and how often one is stored. | Disk is tight. |
 | `polling` | Repeater polling: whether Beacon coordinates observers polling repeaters, which broker hosts they publish to, and how long readings are kept. Off by default. | You want [Repeater polling](repeater-polling.md). See [Repeater polling](#repeater-polling). |
-| `accounts` | User accounts: sign-in for Beacon Web and BEACON Mobile. Off by default; with it off no account route is served. `local` needs SMTP; `portal` signs in through the MeshMapper portal. | You want people to have accounts. See [User accounts](#user-accounts) and [User accounts](accounts.md). |
-| `alerts` | `delivery`: `off`, `push` or `email`. Off by default. Needs accounts. | You want [Alerts](alerts.md). See [Alerts](#alerts). |
+| `mail` | The outgoing SMTP server for account mail and email alerts. The password is `BEACON_SMTP_PASSWORD`. | You use `accounts.mode: local`. See [User accounts](#user-accounts). |
+| `accounts` | User accounts: sign-in for Beacon Web and BEACON Mobile. Off by default; with it off no account route is served. `local` needs the `mail` block; `portal` signs in through the MeshMapper portal. | You want people to have accounts. See [User accounts](#user-accounts) and [User accounts](accounts.md). |
+| `alerts` | The alert channels: `email.enabled` and `push.enabled`, with `push.id`. Off by default. Needs accounts. | You want [Alerts](alerts.md). See [Alerts](#alerts). |
 | `backup` | Turns on the admin backup download. Off by default. | You want [Backup and export](backup-export.md). |
 | `packets` | How long packets, observations and channel messages are kept. Default 7 days. | Disk is tight, or you want more history. |
 | `analytics` | How long hourly stats rollups are kept. Default 90 days. They outlive raw packets. | You want longer stats windows. |
@@ -94,8 +95,8 @@ which ones to read.
 | `websocket` | Connections per client, upgrade attempts per minute, the live-event send budget per connection, which other sites may open `/ws`, and `require_origin`: whether a client with no `Origin` needs a ticket from `/api/v1/ws-ticket` (off by default; on raises the minimum app version). | The web app is served from a different host than the API, real clients keep getting `lagged` notices from the send budget, or scripts with no `Origin` read the live feed. |
 | `nodes` | When a node is marked stale, when it is deleted, the clock-drift threshold, and the optional foreign repeater flag. | You want `possiblyForeign` on repeaters. |
 | `observers` | Optional deletion of observers not seen for a long time. Off by default. | Rarely. |
-| `mobile` | `min_app_version`: the oldest BEACON Mobile release allowed to use this server. Older apps show an update screen. Unset by default. | You need users on a newer app release. |
-| `web` | `min_web_version`: the oldest Beacon Web release allowed to use this server. Older web builds show a blocking "reload" screen. The server has a built-in floor (2.0.3 today); this can raise it, not lower it. | Your web container lags the server and you want stale browsers to reload. |
+| `mobile` | `min_app_version`: the oldest BEACON Mobile release allowed to use this server. Older apps show an update screen. The server has a built-in floor (2.3.0 today); this can raise it, not lower it. | You need users on a newer app release. |
+| `web` | `min_web_version`: the oldest Beacon Web release allowed to use this server. Older web builds show a blocking "reload" screen. The server has a built-in floor (2.3.0 today); this can raise it, not lower it. | Your web container lags the server and you want stale browsers to reload. |
 | `cors` | Browser cross-origin rules for REST: `allowed_origins`, `allowed_methods`, `allowed_headers`, `allow_credentials`, `max_age`. Default allows any origin, read-only methods, no credentials. | You are building an admin UI on another origin, or the web app is on another origin than the API and uses accounts (see [Same site](accounts.md#same-site-and-a-web-app-on-another-origin)). |
 | `cache` | Redis TTLs per response category. | Rarely. |
 | `ingest` | Only store packets from observers in listed countries or continents. | You run a regional instance and want to ignore the rest of the world. |
@@ -364,27 +365,35 @@ stops startup with an error naming the key. With `mode: off` the rest of the blo
 | `mode` | `off` | `off`, `local` or `portal`. |
 | `public_url` | none | Required with `local` and `portal`. The web app's address, `https` (plain `http` only for `localhost` and `127.0.0.1`), no path. Used for mailed links and the cookie's `Secure` flag. |
 | `registration` | `open` | `open` or `closed`. |
-| `smtp.host` | none | Required with `local`. |
-| `smtp.port` | `587` | 1 to 65535. |
-| `smtp.username` | empty | Empty means no authentication. |
-| `smtp.from` | none | Required with `local`. One address, for example `"Beacon <no-reply@example.org>"`. |
-| `smtp.starttls` | `true` | When true the send fails unless the server offers STARTTLS. |
 | `portal.url` | none | Required with `portal`. The portal's `https` base address, with no credentials, query or fragment. |
 | `portal.client_id` | none | Required with `portal`. The id the portal knows this instance by. |
 
-With `portal`, the `smtp` block is not used and registration is always closed. The client secret is
+With `portal`, the `mail` block is not used and registration is always closed. The client secret is
 `BEACON_PORTAL_SECRET`, never in the file. See [Sign-in through the MeshMapper portal](portal-sign-in.md).
+
+`local` sends its mail through the top-level `mail` block, which email alerts share. It is checked only
+when `accounts.mode` is `local`. An `smtp` block left under `accounts` stops startup with a message saying it
+moved.
+
+| Key | Default | What it does |
+|---|---|---|
+| `mail.host` | none | Required with `local`. |
+| `mail.port` | `587` | 1 to 65535. |
+| `mail.username` | empty | Empty means no authentication. |
+| `mail.from` | none | Required with `local`. One address, for example `"Beacon <no-reply@example.org>"`. |
+| `mail.starttls` | `true` | When true the send fails unless the server offers STARTTLS. |
 
 The SMTP password is `BEACON_SMTP_PASSWORD` in the environment, never in the file.
 
 ```yaml
+mail:
+  host: smtp.example.org
+  username: beacon@example.org
+  from: "Beacon <no-reply@example.org>"
+
 accounts:
   mode: local
   public_url: https://beacon.example.org
-  smtp:
-    host: smtp.example.org
-    username: beacon@example.org
-    from: "Beacon <no-reply@example.org>"
 ```
 
 A web app on another origin than the API also needs `cors.allowed_methods`, `cors.allowed_headers`
@@ -397,16 +406,25 @@ The `alerts` block turns on [Alerts](alerts.md). It needs [User accounts](accoun
 
 | Key | Default | What it does |
 |---|---|---|
-| `delivery` | `off` | `off`, `push` or `email`. `email` needs `accounts.mode: local`; with `portal` startup fails. `push` needs `BEACON_PUSH_CREDENTIALS` in the environment, and startup fails without it. Anything else stops startup. |
+| `email.enabled` | `false` | Send alerts by email. Needs `accounts.mode: local` and the `mail` block; any other mode stops startup. |
+| `push.enabled` | `false` | Send alerts as push notifications to the Beacon app, through the push server. Needs `accounts.mode` `local` or `portal`, `push.id` and `BEACON_PUSH_SECRET`; startup fails without them. |
+| `push.id` | empty | Required with `push.enabled`. The Push ID from registering the server at `https://push.meshcorebeacon.ca/register`, at most 64 characters. |
+| `push.server` | `https://push.meshcorebeacon.ca` | The push server. You must use the official one: the Beacon app only receives notifications sent through it. Only change it if the project announces a new address. Must be https with no path, query or credentials; any other server logs a warning. |
+
+Each user picks which of the offered channels reach them. The old `alerts.delivery` key stops
+startup with a message saying what replaced it.
 
 ```yaml
 alerts:
-  delivery: email
+  email:
+    enabled: true
+  push:
+    enabled: true
+    id: inst_7f3k2m9qxa
 ```
 
-`BEACON_PUSH_CREDENTIALS` is the path, inside the container, of a Google service account key file
-(JSON with `project_id`, `client_email` and `private_key`). Mount the file read-only and keep it out
-of source control. See [Push](alerts.md#push).
+`BEACON_PUSH_SECRET` is the Push secret, in the environment, never in the file. See
+[Push](alerts.md#push).
 
 ## Atlas size
 
