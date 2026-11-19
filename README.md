@@ -231,6 +231,8 @@ operator-configured feature.
 
 ## Maintainer handoff
 
+[Route maintenance release-host check](docs/reconfirm-release-20261119.md) records the observed neighbour passes, query measurements, preview validation and rollback.
+
 [Alert delivery and profile performance](docs/alerts-audit-20261119.md) records the November 19 preview fixes, the relay health check and database recovery.
 
 [Current audit handoff](docs/handoff-20261116.md) identifies the qualified preview, focused dev PRs, recovery boundary and remaining release gates.
